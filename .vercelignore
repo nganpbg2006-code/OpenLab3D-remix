@@ -1,0 +1,7 @@
+.aistudio
+workspace
+scripts
+bun.lock
+.openlab-deleted-assets.json
+.openlab-shared-projects.json
+*.log

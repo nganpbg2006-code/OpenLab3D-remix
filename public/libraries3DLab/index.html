@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Thư Viện Thiết Bị 3D (libraries3DLab) — OpenLab 3D</title>
+    <style>
+      :root {
+        --bg: #0b1324;
+        --panel: #131e33;
+        --card: #182640;
+        --border: #2a4068;
+        --primary: #1e6bff;
+        --cyan: #00bceb;
+        --emerald: #10b981;
+        --text: #f8fafc;
+        --sub: #94a3b8;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+      }
+      .header {
+        background: #07224d;
+        border-bottom: 1px solid var(--border);
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+      .header-title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .folder-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 10px;
+        background: rgba(0, 188, 235, 0.15);
+        border: 1px solid var(--cyan);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+      h1 {
+        margin: 0;
+        font-size: 18px;
+        font-weight: 800;
+      }
+      .subtitle {
+        margin: 3px 0 0;
+        font-size: 12.5px;
+        color: #bae6fd;
+      }
+      .container {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 20px 24px 48px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+      .path-bar {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .path-input-group {
+        flex: 1;
+        min-width: 280px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #09101f;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 8px 12px;
+      }
+      .path-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--cyan);
+        white-space: nowrap;
+      }
+      .path-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: #fff;
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 13px;
+        font-weight: 600;
+        outline: none;
+      }
+      .btn-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      button,
+      .btn-link {
+        border: 1px solid transparent;
+        border-radius: 8px;
+        padding: 8px 13px;
+        font-size: 12.5px;
+        font-weight: 700;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: all 0.15s;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #fff;
+      }
+      .btn-primary:hover {
+        background: #1557db;
+      }
+      .btn-emerald {
+        background: #059669;
+        border-color: #34d399;
+        color: #fff;
+      }
+      .btn-emerald:hover {
+        background: #047857;
+      }
+      .btn-ghost {
+        background: #1e293b;
+        border-color: #334155;
+        color: #e2e8f0;
+      }
+      .btn-ghost:hover {
+        background: #334155;
+      }
+      .status-banner {
+        padding: 10px 14px;
+        border-radius: 10px;
+        background: rgba(16, 185, 129, 0.14);
+        border: 1px solid rgba(52, 211, 153, 0.4);
+        color: #a7f3d0;
+        font-size: 13px;
+        font-weight: 600;
+        display: none;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 12px;
+      }
+      .card:hover {
+        border-color: var(--cyan);
+      }
+      .card-top {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+      }
+      .thumb {
+        width: 68px;
+        height: 68px;
+        border-radius: 9px;
+        background: #fff;
+        border: 1px solid var(--border);
+        object-fit: contain;
+        padding: 4px;
+        flex-shrink: 0;
+      }
+      .folder-name {
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 11.5px;
+        color: var(--cyan);
+        word-break: break-all;
+      }
+      .item-title {
+        font-size: 15px;
+        font-weight: 800;
+        margin: 3px 0;
+      }
+      .disk-path {
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 11px;
+        color: var(--sub);
+        background: #09101f;
+        padding: 5px 8px;
+        border-radius: 6px;
+        border: 1px solid #1e2f4d;
+        word-break: break-all;
+      }
+      .file-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .tag {
+        font-family: 'JetBrains Mono', Consolas, monospace;
+        font-size: 11px;
+        padding: 3px 7px;
+        border-radius: 5px;
+        background: #0f172a;
+        border: 1px solid #334155;
+        color: #cbd5e1;
+      }
+      .card-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-title">
+        <div class="folder-badge">📁</div>
+        <div>
+          <h1>Thư Viện Thiết Bị 3D (libraries3DLab)</h1>
+          <p class="subtitle">
+            Cấu trúc thư mục chuẩn Arduino Libraries — Tự động nạp các gói mô phỏng .HTML khi khởi chạy OpenLab 3D
+          </p>
+        </div>
+      </div>
+      <div class="btn-row">
+        <span
+          id="totalCountBadge"
+          style="
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(0, 188, 235, 0.15);
+            border: 1px solid var(--cyan);
+            font-size: 12.5px;
+            font-weight: 800;
+            color: #e0f2fe;
+          "
+        >
+          Đang tải thư viện...
+        </span>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="path-bar">
+        <div class="path-input-group">
+          <span class="path-label">Đường dẫn libraries3D:</span>
+          <input
+            id="basePathInput"
+            class="path-input"
+            type="text"
+            value="C:\Users\ltlie\Documents\libraries3DLab"
+          />
+        </div>
+        <div class="btn-row">
+          <button type="button" class="btn-primary" id="savePathBtn">
+            ✓ Áp dụng đường dẫn
+          </button>
+          <button type="button" class="btn-emerald" id="pickPhysicalFolderBtn">
+            📂 Chọn & Gắn kết Thư mục trên máy (Documents)
+          </button>
+          <button type="button" class="btn-ghost" id="scanFolderInputBtn">
+            🔍 Quét nạp file .HTML từ thư mục
+          </button>
+          <input
+            id="hiddenFolderScanner"
+            type="file"
+            webkitdirectory
+            directory
+            multiple
+            style="display: none"
+          />
+        </div>
+      </section>
+
+      <div id="statusBanner" class="status-banner"></div>
+
+      <div id="libraryGrid" class="grid"></div>
+    </main>
+
+    <script>
+      const DEFAULT_PATH = 'C:\\Users\\ltlie\\Documents\\libraries3DLab';
+      const IDB_NAME = 'OpenLab3D_LibrariesDisk_DB_v1';
+      const IDB_STORE = 'library_modules';
+
+      const basePathInput = document.getElementById('basePathInput');
+      const statusBanner = document.getElementById('statusBanner');
+      const libraryGrid = document.getElementById('libraryGrid');
+      const totalCountBadge = document.getElementById('totalCountBadge');
+
+      function showStatus(msg) {
+        statusBanner.textContent = msg;
+        statusBanner.style.display = 'block';
+      }
+
+      function getConfiguredPath() {
+        return localStorage.getItem('ol3d_library_base_path') || DEFAULT_PATH;
+      }
+
+      basePathInput.value = getConfiguredPath();
+
+      document.getElementById('savePathBtn').addEventListener('click', () => {
+        const val = basePathInput.value.trim() || DEFAULT_PATH;
+        localStorage.setItem('ol3d_library_base_path', val);
+        localStorage.setItem('ol3d_library_path_applied_v1', 'true');
+        showStatus('Đã áp dụng đường dẫn thư mục libraries3D: ' + val);
+        loadAndRenderLibraries();
+      });
+
+      document
+        .getElementById('scanFolderInputBtn')
+        .addEventListener('click', () => {
+          document.getElementById('hiddenFolderScanner').click();
+        });
+
+      document
+        .getElementById('hiddenFolderScanner')
+        .addEventListener('change', async (e) => {
+          const files = Array.from(e.target.files || []);
+          const htmlFiles = files.filter((f) =>
+            f.name.toLowerCase().endsWith('.html'),
+          );
+          if (htmlFiles.length === 0) {
+            showStatus('Không tìm thấy file .html nào trong thư mục đã chọn.');
+            return;
+          }
+          const folderRel = files[0]?.webkitRelativePath || '';
+          const rootFolderName = folderRel.split('/')[0] || 'libraries3DLab';
+          showStatus(
+            `Đã quét thư mục "${rootFolderName}" và phát hiện ${htmlFiles.length} module .HTML!`,
+          );
+        });
+
+      document
+        .getElementById('pickPhysicalFolderBtn')
+        .addEventListener('click', async () => {
+          if (!window.showDirectoryPicker) {
+            document.getElementById('hiddenFolderScanner').click();
+            return;
+          }
+          try {
+            const handle = await window.showDirectoryPicker({
+              id: 'libraries3DLab',
+              mode: 'readwrite',
+              startIn: 'documents',
+            });
+            const newPath = `C:\\Users\\ltlie\\Documents\\${handle.name}`;
+            basePathInput.value = newPath;
+            localStorage.setItem('ol3d_library_base_path', newPath);
+            localStorage.setItem('ol3d_library_path_applied_v1', 'true');
+            showStatus(
+              `Đã kết nối trực tiếp thư mục "${handle.name}" trên máy tính!`,
+            );
+            loadAndRenderLibraries();
+          } catch (err) {
+            // Người dùng đóng hộp thoại
+          }
+        });
+
+      function readIndexedDbModules() {
+        return new Promise((resolve) => {
+          if (!window.indexedDB) return resolve([]);
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+              db.createObjectStore(IDB_STORE, { keyPath: 'assetId' });
+            }
+          };
+          req.onsuccess = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) return resolve([]);
+            const tx = db.transaction(IDB_STORE, 'readonly');
+            const getAll = tx.objectStore(IDB_STORE).getAll();
+            getAll.onsuccess = () => resolve(getAll.result || []);
+            getAll.onerror = () => resolve([]);
+          };
+          req.onerror = () => resolve([]);
+        });
+      }
+
+      function deleteIndexedDbModule(assetId) {
+        return new Promise((resolve) => {
+          if (!window.indexedDB) return resolve();
+          const req = indexedDB.open(IDB_NAME, 1);
+          req.onsuccess = () => {
+            const db = req.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) return resolve();
+            const tx = db.transaction(IDB_STORE, 'readwrite');
+            tx.objectStore(IDB_STORE).delete(assetId);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => resolve();
+          };
+          req.onerror = () => resolve();
+        });
+      }
+
+      function getDeletedAssetIds() {
+        try {
+          const raw = localStorage.getItem('ol3d_deleted_catalog_assets_v1');
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) return new Set(parsed);
+          }
+        } catch {}
+        return new Set();
+      }
+
+      async function permanentlyDeleteLibraryItem(mod, listRef, cardElement) {
+        const isConfirmed = confirm(
+          'Bạn có chắc chắn muốn xóa vĩnh viễn dụng cụ này không?',
+        );
+        if (!isConfirmed) return;
+
+        // 1. Xóa khỏi mảng dữ liệu (Array)
+        const idx = listRef.findIndex((item) => item.assetId === mod.assetId);
+        if (idx !== -1) {
+          listRef.splice(idx, 1);
+        }
+
+        // 2. Xóa vĩnh viễn khỏi LocalStorage và IndexedDB
+        const deletedIds = getDeletedAssetIds();
+        deletedIds.add(mod.assetId);
+        localStorage.setItem(
+          'ol3d_deleted_catalog_assets_v1',
+          JSON.stringify(Array.from(deletedIds)),
+        );
+
+        try {
+          const rawCustom = localStorage.getItem('ol3d_saved_custom_equipment_v1');
+          if (rawCustom) {
+            const parsedCustom = JSON.parse(rawCustom);
+            if (Array.isArray(parsedCustom)) {
+              const filteredCustom = parsedCustom.filter(
+                (item) => item && item.assetId !== mod.assetId,
+              );
+              localStorage.setItem(
+                'ol3d_saved_custom_equipment_v1',
+                JSON.stringify(filteredCustom),
+              );
+            }
+          }
+        } catch {}
+
+        await deleteIndexedDbModule(mod.assetId);
+
+        // 3. Cập nhật giao diện lập tức (DOM Update)
+        if (cardElement && cardElement.parentNode) {
+          cardElement.remove();
+        }
+        totalCountBadge.textContent = `${listRef.length} gói thiết bị trong libraries3DLab`;
+        showStatus(
+          `Đã xóa vĩnh viễn dụng cụ "${mod.nameVi}" khỏi kho thiết bị!`,
+        );
+      }
+
+      async function loadAndRenderLibraries() {
+        const basePath = getConfiguredPath();
+        let bundled = [];
+        try {
+          const res = await fetch('/libraries3DLab/library-index.json');
+          if (res.ok) {
+            const data = await res.json();
+            bundled = data.libraries || [];
+          }
+        } catch {}
+
+        const idbEntries = await readIndexedDbModules();
+        const mergedMap = new Map();
+        const userDeletedIds = getDeletedAssetIds();
+
+        const REMOVED_IDS = new Set([
+          'OL3D-EQP-LSR-0001',
+          'OL3D-EQP-PRM-0001',
+          'OL3D-EQP-OPT-0001',
+          'OL3D-EQP-DMM-0001',
+          'OL3D-EQP-DSH-0001',
+          'OL3D-EQP-DST-0001',
+        ]);
+
+        for (const item of bundled) {
+          if (REMOVED_IDS.has(item.assetId) || userDeletedIds.has(item.assetId))
+            continue;
+          mergedMap.set(item.assetId, {
+            assetId: item.assetId,
+            nameVi: item.nameVi,
+            folderName: item.folderName,
+            htmlFileName: item.htmlFileName,
+            htmlUrl: `/libraries3DLab/${item.folderName}/${item.htmlFileName}`,
+            manifestUrl: `/libraries3DLab/${item.folderName}/manifest.json`,
+            propertiesUrl: `/libraries3DLab/${item.folderName}/library.properties`,
+            photoUrl: item.realPhotoSrc || '',
+            virtualDiskPath: `${basePath}\\${item.folderName}\\${item.htmlFileName}`,
+            sourceLabel: 'Thư viện gốc (Pre-installed)',
+            rawHtmlSource: null,
+          });
+        }
+
+        for (const entry of idbEntries) {
+          if (REMOVED_IDS.has(entry.assetId) || userDeletedIds.has(entry.assetId))
+            continue;
+          const existing = mergedMap.get(entry.assetId);
+          mergedMap.set(entry.assetId, {
+            assetId: entry.assetId,
+            nameVi:
+              entry.assetSnapshot?.name?.vi ||
+              existing?.nameVi ||
+              entry.assetId,
+            folderName: entry.folderName,
+            htmlFileName: entry.htmlFileName,
+            htmlUrl:
+              existing?.htmlUrl ||
+              `/libraries3DLab/${entry.folderName}/${entry.htmlFileName}`,
+            manifestUrl: existing?.manifestUrl || null,
+            propertiesUrl: existing?.propertiesUrl || null,
+            photoUrl:
+              entry.uploadedRealPhotoDataUrl || existing?.photoUrl || '',
+            virtualDiskPath: `${basePath}\\${entry.folderName}\\${entry.htmlFileName}`,
+            sourceLabel: 'Đã cập nhật / Nạp thêm (.HTML)',
+            rawHtmlSource: entry.rawHtmlSource || null,
+          });
+        }
+
+        const list = Array.from(mergedMap.values());
+        totalCountBadge.textContent = `${list.length} gói thiết bị trong libraries3DLab`;
+        libraryGrid.innerHTML = '';
+
+        for (const mod of list) {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.setAttribute('data-equipment-id', mod.assetId);
+          card.innerHTML = `
+            <div>
+              <div class="card-top">
+                ${
+                  mod.photoUrl
+                    ? `<img class="thumb" src="${mod.photoUrl}" alt="${mod.nameVi}" />`
+                    : `<div class="thumb" style="display:flex;align-items:center;justify-content:center;background:#0f172a;color:#38bdf8;font-weight:800;font-size:11px;">3D HTML</div>`
+                }
+                <div style="min-width:0;flex:1;">
+                  <div class="folder-name">📁 ${mod.folderName}/</div>
+                  <div class="item-title">${mod.nameVi}</div>
+                  <div style="font-size:11.5px;color:#34d399;font-weight:700;">${mod.sourceLabel}</div>
+                </div>
+              </div>
+              <div class="disk-path" style="margin-top:10px;">${mod.virtualDiskPath}</div>
+              <div class="file-tags" style="margin-top:8px;">
+                <span class="tag">📄 ${mod.htmlFileName}</span>
+                <span class="tag">⚙️ library.properties</span>
+                <span class="tag">📋 manifest.json</span>
+              </div>
+            </div>
+            <div class="card-actions">
+              <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                <a class="btn-link btn-primary" href="${mod.htmlUrl}" target="_blank" rel="noopener noreferrer">
+                  ▶ Mở file .HTML
+                </a>
+                ${
+                  mod.manifestUrl
+                    ? `<a class="btn-link btn-ghost" href="${mod.manifestUrl}" target="_blank" rel="noopener noreferrer">manifest.json</a>`
+                    : ''
+                }
+              </div>
+              <button type="button" class="btn-delete-item" style="background:#e11d48;border-color:#fb7185;color:#fff;">
+                🗑 Xóa
+              </button>
+            </div>
+          `;
+
+          if (mod.rawHtmlSource) {
+            const openBtn = card.querySelector('.btn-primary');
+            openBtn.addEventListener('click', (ev) => {
+              ev.preventDefault();
+              const blob = new Blob([mod.rawHtmlSource], {
+                type: 'text/html;charset=utf-8',
+              });
+              const blobUrl = URL.createObjectURL(blob);
+              openBtn.href = blobUrl;
+              window.location.assign(blobUrl);
+            });
+          }
+
+          const deleteBtn = card.querySelector('.btn-delete-item');
+          if (deleteBtn) {
+            deleteBtn.addEventListener('click', () => {
+              permanentlyDeleteLibraryItem(mod, list, card);
+            });
+          }
+
+          libraryGrid.appendChild(card);
+        }
+      }
+
+      loadAndRenderLibraries();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,236 @@
+# TỔNG HỢP KIẾN THỨC KHOA HỌC TỰ NHIÊN (LỚP 6, 7, 8)
+
+Tài liệu này tổng hợp các kiến thức cốt lõi của môn Khoa học tự nhiên, bao gồm các phương pháp đo lường cơ bản và ba phân môn: Hoá học (Chất và sự biến đổi của chất), Vật lí (Năng lượng và sự biến đổi), Sinh học (Vật sống).
+
+---
+
+## PHẦN I. MỞ ĐẦU VỀ KHOA HỌC TỰ NHIÊN VÀ ĐO LƯỜNG
+
+### 1. Khái quát về Khoa học tự nhiên (KHTN)
+- **Khái niệm**: KHTN nghiên cứu các hiện tượng tự nhiên, tìm ra các tính chất, quy luật của chúng.
+- **Vật sống và vật không sống**: Vật sống có khả năng trao đổi chất, lớn lên và sinh sản (Ví dụ: con người, cây cối). Vật không sống không có các đặc trưng này (Ví dụ: cái bàn, hòn đá).
+- **Các lĩnh vực chính**: Sinh học (vật sống), Hoá học (chất và sự biến đổi), Vật lí học (chuyển động, lực, năng lượng), Khoa học Trái Đất, Thiên văn học.
+- **Phương pháp tìm hiểu KHTN (5 bước)**: (1) Đề xuất vấn đề $\rightarrow$ (2) Đưa ra dự đoán khoa học $\rightarrow$ (3) Lập kế hoạch kiểm tra $\rightarrow$ (4) Thực hiện kế hoạch $\rightarrow$ (5) Viết báo cáo, thảo luận.
+- **Kĩ năng tiến trình**: Quan sát, phân loại, liên kết, đo lường và dự báo.
+
+### 2. Các phép đo lường cơ bản
+- **Đo chiều dài**:
+  - Đơn vị cơ bản: mét (m). Đơn vị khác: mm, cm, dm, km ($1~km = 1000~m$, $1~m = 1000~mm$).
+  - Dụng cụ: Thước thẳng, thước cuộn, thước dây, thước kẹp.
+- **Đo khối lượng**:
+  - Định nghĩa: Khối lượng là số đo lượng chất của vật.
+  - Đơn vị cơ bản: kilôgam (kg). Đơn vị khác: mg, g, lạng, tạ, tấn ($1~tấn = 1000~kg$).
+  - Dụng cụ: Cân (Rô-béc-van, đồng hồ, điện tử, cân y tế).
+- **Đo thời gian**:
+  - Đơn vị cơ bản: giây (s). Đơn vị khác: phút (min), giờ (h), ngày, tháng, năm.
+  - Dụng cụ: Đồng hồ (bấm giây, điện tử, quả lắc). Trong phòng thí nghiệm dùng cổng quang điện và đồng hồ đo thời gian hiện số.
+- **Đo nhiệt độ**:
+  - Định nghĩa: Nhiệt độ là số đo mức độ nóng, lạnh của một vật.
+  - Đơn vị: Độ C ($^\circ C$) theo thang nhiệt độ Xen-xi-út (Celsius) hoặc độ F ($^\circ F$) theo thang Fa-ren-hai (Fahrenheit). 
+    - Công thức quy đổi: $t(^\circ F) = (t(^\circ C) \times 1,8) + 32$
+    - Điểm đóng băng của nước là $0^\circ C$, điểm sôi là $100^\circ C$.
+  - Dụng cụ: Nhiệt kế (dựa trên sự nở vì nhiệt của chất lỏng), nhiệt kế hồng ngoại, nhiệt kế điện tử.
+- **Quy trình đo (5 bước chung)**: (1) Ước lượng đại lượng cần đo $\rightarrow$ (2) Chọn dụng cụ đo có Giới hạn đo (GHĐ) và Độ chia nhỏ nhất (ĐCNN) phù hợp $\rightarrow$ (3) Đặt/hiệu chỉnh dụng cụ đúng cách $\rightarrow$ (4) Đặt mắt nhìn đúng quy cách $\rightarrow$ (5) Đọc và ghi kết quả.
+
+### 3. Thiết bị và An toàn phòng thực hành
+- **Thiết bị đo điện**:
+  - Ampe kế (đo cường độ dòng điện), Vôn kế (đo hiệu điện thế), Joulemeter (đo năng lượng điện, công suất). Thiết bị đo pH.
+- **Quy tắc an toàn**: Không ăn uống, đùa nghịch; phải mặc đồ bảo hộ (kính, găng tay); đọc kĩ nhãn hoá chất; tuân thủ quy tắc lấy hoá chất (dùng panh/thìa cho chất rắn, ống hút nhỏ giọt cho chất lỏng).
+- **Kí hiệu cảnh báo**: Chất độc, chất dễ cháy, nguồn điện nguy hiểm, chất ăn mòn, cảnh báo nguy hiểm sinh học.
+
+---
+
+## PHẦN II. CHẤT VÀ SỰ BIẾN ĐỔI CỦA CHẤT (HOÁ HỌC)
+
+### 1. Chất quanh ta
+- **Đa dạng của chất**: Chất tạo nên vật thể. Mỗi chất đều có tính chất vật lí (thể, màu, mùi, vị, nhiệt độ nóng chảy/sôi, tính dẫn điện/nhiệt) và tính chất hoá học (sự biến đổi tạo ra chất mới).
+- **Ba thể của chất**:
+  - **Thể rắn**: Hình dạng cố định, rất khó nén, các hạt dao động quanh vị trí cố định.
+  - **Thể lỏng**: Hình dạng của vật chứa, khó nén, có thể chảy, các hạt trượt lên nhau.
+  - **Thể khí**: Hình dạng vật chứa, dễ bị nén, lan toả theo mọi hướng, các hạt di chuyển tự do.
+- **Sự chuyển thể**: Nóng chảy (Rắn $\rightarrow$ Lỏng), Đông đặc (Lỏng $\rightarrow$ Rắn), Hoá hơi/Sôi/Bay hơi (Lỏng $\rightarrow$ Khí), Ngưng tụ (Khí $\rightarrow$ Lỏng).
+
+### 2. Oxygen và Không khí
+- **Oxygen ($O_2$)**: Khí không màu, không mùi, ít tan trong nước, hoá lỏng ở $-183^\circ C$ (màu xanh nhạt). Cần thiết cho hô hấp và sự cháy.
+- **Không khí**: Là hỗn hợp khí. Thành phần thể tích: 78% Nitrogen, 21% Oxygen, 1% Carbon dioxide, hơi nước và khí khác.
+- **Ô nhiễm không khí**: Xảy ra do núi lửa, cháy rừng, rác thải, khí thải công nghiệp/giao thông. Gây hiệu ứng nhà kính, mưa acid, bệnh hô hấp.
+
+### 3. Vật liệu, Nguyên liệu, Nhiên liệu, Lương thực - Thực phẩm
+- **Vật liệu**: Kim loại (dẫn điện/nhiệt tốt, có ánh kim), Thuỷ tinh (trong suốt, giòn, cách điện), Nhựa (dẻo, nhẹ, cách điện), Cao su (đàn hồi, cách điện). Nguyên tắc 3R (Reduce - Giảm thiểu, Reuse - Tái sử dụng, Recycle - Tái chế).
+- **Nguyên liệu**: Đất, đá, quặng (quặng sắt làm gang/thép, quặng bauxite làm nhôm), dầu mỏ. Là tài nguyên hữu hạn.
+- **Nhiên liệu**: Các chất cháy toả nhiệt (than, gỗ, xăng, khí gas). Gồm thể rắn, lỏng, khí.
+- **Lương thực - Thực phẩm**: Chứa các nhóm dinh dưỡng chính: Carbohydrate (cung cấp năng lượng), Protein (chất đạm cấu tạo cơ thể), Lipid (chất béo dự trữ năng lượng), Chất khoáng và Vitamin.
+
+### 4. Hỗn hợp và Tách chất
+- **Chất tinh khiết**: Chỉ có một chất duy nhất, tính chất xác định (VD: nước cất).
+- **Hỗn hợp**: Gồm hai chất trở lên.
+  - **Dung dịch**: Hỗn hợp đồng nhất giữa dung môi và chất tan.
+  - **Huyền phù**: Hỗn hợp rắn-lỏng không đồng nhất (hạt rắn lơ lửng trong lỏng).
+  - **Nhũ tương**: Hỗn hợp lỏng-lỏng không đồng nhất.
+- **Phương pháp tách chất**: Lắng/gạn (chất rắn nặng chìm xuống), Lọc (tách chất rắn lơ lửng/không tan khỏi lỏng), Cô cạn (tách chất rắn tan ra khỏi dung môi bằng đun nóng), Chiết (tách hai chất lỏng không hoà tan vào nhau).
+
+### 5. Nguyên tử và Bảng tuần hoàn
+- **Cấu tạo Nguyên tử (Mô hình Rutherford - Bohr)**:
+  - Vô cùng nhỏ bé, rỗng, trung hoà về điện.
+  - **Hạt nhân**: Nằm ở tâm, mang điện tích dương, gồm Proton ($p$, $+1$) và Neutron ($n$, không mang điện).
+  - **Vỏ**: Gồm các Electron ($e$, $-1$) chuyển động quanh hạt nhân xếp thành từng lớp (lớp 1 tối đa 2e, lớp 2 tối đa 8e). Số $p$ = Số $e$.
+  - **Khối lượng**: Tập trung ở hạt nhân, đơn vị là amu (1 $p \approx 1~n \approx 1~amu$).
+- **Nguyên tố hoá học**: Tập hợp các nguyên tử có cùng số proton. Kí hiệu hoá học gồm 1 hoặc 2 chữ cái (IUPAC).
+- **Bảng tuần hoàn**:
+  - Sắp xếp theo chiều tăng dần điện tích hạt nhân (số proton / số hiệu nguyên tử).
+  - **Ô nguyên tố**: Chứa kí hiệu, tên, số hiệu nguyên tử, khối lượng nguyên tử.
+  - **Chu kì**: Hàng ngang. Cùng số lớp electron. Số thứ tự chu kì = số lớp e.
+  - **Nhóm**: Cột dọc. Có tính chất gần giống nhau. Số thứ tự nhóm A = số e lớp ngoài cùng.
+  - Phân loại: Kim loại (nhóm IA, IIA, IIIA...), Phi kim (nhóm VA, VIA, VIIA), Khí hiếm (nhóm VIIIA).
+
+### 6. Phân tử, Liên kết hoá học và Hoá trị
+- **Đơn chất**: Tạo nên từ 1 nguyên tố hoá học (VD: $O_2$, Cu).
+- **Hợp chất**: Tạo nên từ 2 hay nhiều nguyên tố hoá học (VD: $H_2O$, $CO_2$).
+- **Phân tử**: Hạt đại diện cho chất, gồm các nguyên tử liên kết với nhau. Tính khối lượng (amu) bằng tổng khối lượng các nguyên tử thành phần.
+- **Liên kết hoá học**: Xu hướng đạt cấu hình e bền vững của khí hiếm (8e lớp ngoài cùng, hoặc 2e với He).
+  - **Liên kết ion**: Lực hút tĩnh điện giữa các ion mang điện trái dấu (Kim loại nhường e tạo ion dương, phi kim nhận e tạo ion âm). Hợp chất ion thường ở thể rắn, khó nóng chảy, dẫn điện khi tan trong nước.
+  - **Liên kết cộng hoá trị**: Dùng chung một hoặc nhiều cặp electron. Gặp ở các phi kim. Nhiệt độ nóng chảy, sôi thấp.
+- **Hoá trị**: Biểu thị khả năng liên kết của nguyên tử. (Quy ước: H luôn có hoá trị I, O có hoá trị II).
+- **Quy tắc hoá trị**: Trong hợp chất $A_x B_y$, ta có: $x \cdot a = y \cdot b$ (với $a, b$ là hoá trị của $A, B$).
+
+### 7. Phản ứng hoá học và Tính toán hoá học
+- **Phản ứng hoá học**: Quá trình biến đổi từ chất này thành chất khác. (Chất phản ứng $\rightarrow$ Sản phẩm).
+- **Diễn biến**: Phá vỡ liên kết cũ, hình thành liên kết mới, số lượng nguyên tử mỗi nguyên tố được bảo toàn.
+- **Năng lượng**:
+  - *Phản ứng toả nhiệt*: Giải phóng năng lượng ra môi trường (đốt cháy nhiên liệu).
+  - *Phản ứng thu nhiệt*: Nhận năng lượng từ môi trường (nung đá vôi).
+- **Mol và Khối lượng mol**:
+  - $1~mol$ chứa $N_A \approx 6.022 \times 10^{23}$ hạt vi mô.
+  - Công thức: $n = \frac{m}{M}$ (Trong đó $n$: số mol, $m$: khối lượng (g), $M$: khối lượng mol (g/mol)).
+- **Thể tích mol chất khí**: Ở đkc ($25^\circ C$, 1 bar), 1 mol khí chiếm 24,79 Lít. Công thức: $V = n \times 24.79$.
+- **Tỉ khối của chất khí**: $d_{A/B} = \frac{M_A}{M_B}$. (So với không khí: $d_{A/kk} = \frac{M_A}{29}$).
+- **Dung dịch & Nồng độ**:
+  - Độ tan: $S = \frac{m_{ct}}{m_{dm}} \times 100$.
+  - Nồng độ phần trăm: $C\% = \frac{m_{ct}}{m_{dd}} \times 100\%$.
+  - Nồng độ mol: $C_M = \frac{n}{V}$ (mol/L hoặc M).
+- **Định luật bảo toàn khối lượng**: Tổng khối lượng chất sản phẩm bằng tổng khối lượng chất tham gia.
+- **Tốc độ phản ứng**: Đại lượng đặc trưng cho sự nhanh/chậm của phản ứng. Tăng khi tăng: nhiệt độ, nồng độ, diện tích tiếp xúc, hoặc dùng chất xúc tác.
+
+### 8. Các hợp chất vô cơ thông dụng
+- **Acid**: Hợp chất có nguyên tử hydrogen liên kết với gốc acid. Phân li ra $H^+$. Làm quỳ tím hoá đỏ. Tác dụng kim loại sinh ra $H_2$. (VD: $HCl$, $H_2SO_4$, $CH_3COOH$).
+- **Base**: Hợp chất có kim loại liên kết với nhóm hydroxide (OH). Phân li ra $OH^-$. Làm quỳ tím hoá xanh, phenolphthalein hoá hồng. Base tan gọi là kiềm (NaOH, KOH, $Ba(OH)_2$).
+- **Thang pH**: Đo độ acid/base. $pH < 7$: Acid; $pH = 7$: Trung tính; $pH > 7$: Base (Kiềm).
+- **Oxide**: Hợp chất của 2 nguyên tố (1 là oxygen). Gồm 4 loại: Oxide acid (tác dụng kiềm $\rightarrow$ muối + nước), Oxide base (tác dụng acid $\rightarrow$ muối + nước), Oxide lưỡng tính (tác dụng cả acid và base), Oxide trung tính.
+- **Muối**: Cation kim loại (hoặc $NH_4^+$) liên kết anion gốc acid. Phản ứng trung hoà: $Acid + Base \rightarrow Muối + Nước$.
+- **Phân bón hoá học**: Cung cấp dinh dưỡng cho cây. Gồm đa lượng (N, P, K), trung lượng, vi lượng.
+
+---
+
+## PHẦN III. NĂNG LƯỢNG VÀ SỰ BIẾN ĐỔI (VẬT LÍ)
+
+### 1. Khối lượng riêng và Áp suất
+- **Khối lượng riêng**: Khối lượng của một đơn vị thể tích chất. Công thức: $D = \frac{m}{V}$ (Đơn vị: $kg/m^3$ hoặc $g/cm^3$).
+- **Áp lực**: Lực ép có phương vuông góc với mặt bị ép.
+- **Áp suất**: Độ lớn của áp lực trên một đơn vị diện tích bị ép.
+  - Công thức: $p = \frac{F}{S}$.
+  - Đơn vị: Pascal (Pa) hoặc $N/m^2$ ($1~Pa = 1~N/m^2$). Đơn vị khác: atm, mmHg, bar.
+- **Áp suất chất lỏng**: Truyền đi nguyên vẹn theo mọi hướng (Ứng dụng: Máy nén thuỷ lực).
+- **Áp suất khí quyển**: Áp suất do lớp không khí bao quanh Trái Đất tác dụng lên mọi vật. 
+- **Lực đẩy Archimedes**: Lực đẩy do chất lỏng tác dụng lên vật đặt trong nó, hướng thẳng đứng từ dưới lên. 
+  - Công thức: $F_A = d \cdot V$ ($d$: trọng lượng riêng chất lỏng, $V$: thể tích phần chất lỏng bị chiếm chỗ).
+  - Điều kiện nổi/chìm: Vật chìm khi $F_A < P$ (trọng lượng), nổi khi $F_A > P$.
+
+### 2. Tác dụng làm quay của lực
+- **Moment lực**: Đại lượng đặc trưng cho tác dụng làm quay của lực quanh một điểm hoặc một trục. Phụ thuộc vào độ lớn của lực và khoảng cách từ giá của lực tới trục quay (cánh tay đòn).
+- **Đòn bẩy**: Thiết bị giúp thay đổi hướng tác dụng của lực, có trục quay cố định (điểm tựa O).
+  - Đòn bẩy loại 1: Điểm tựa nằm giữa 2 lực (VD: Cái kéo).
+  - Đòn bẩy loại 2: Điểm tựa nằm ngoài, lực cản/vật ở giữa (lợi về lực) (VD: Xe cút kít).
+  - Đòn bẩy loại 3 (không lợi về lực): Lực tác dụng ở giữa (VD: Cầm đũa, câu cá).
+
+### 3. Điện học
+- **Sự nhiễm điện**: Cọ xát làm vật nhiễm điện (mất e $\rightarrow$ dương, nhận e $\rightarrow$ âm). Vật nhiễm điện cùng dấu đẩy nhau, trái dấu hút nhau.
+- **Dòng điện & Nguồn điện**: Dòng điện là dòng chuyển dời có hướng của các hạt mang điện. Nguồn điện cung cấp năng lượng điện (Pin, acquy). Dòng điện một chiều có chiều quy ước từ cực dương qua dây nối tới cực âm.
+- **Vật dẫn và Vật cách điện**: Vật dẫn cho dòng điện chạy qua (kim loại). Vật cách điện không cho dòng điện chạy qua (nhựa, cao su).
+- **Tác dụng của dòng điện**: Nhiệt (bàn là), Phát sáng (bóng đèn LED, huỳnh quang), Hoá học (mạ điện), Sinh lí (gây co giật, dùng trong máy sốc tim).
+- **Đại lượng điện**:
+  - **Cường độ dòng điện (I)**: Đo mức độ mạnh yếu của dòng điện. Dụng cụ: Ampe kế (mắc nối tiếp). Đơn vị: Ampe (A), mA.
+  - **Hiệu điện thế (U)**: Đo khả năng sinh ra dòng điện của nguồn. Dụng cụ: Vôn kế (mắc song song). Đơn vị: Vôn (V).
+- **Thiết bị an toàn mạch điện**: Cầu chì, Rơle, Cầu dao tự động (Aptomat).
+
+### 4. Tốc độ chuyển động
+- **Tốc độ**: Đặc trưng cho sự nhanh hay chậm của chuyển động. 
+- **Công thức**: $v = \frac{s}{t}$ (quãng đường chia thời gian).
+- **Đơn vị**: m/s hoặc km/h. ($1~m/s = 3,6~km/h$).
+- **Đồ thị quãng đường - thời gian**: Trục hoành ($t$), trục tung ($s$). Đường thẳng xiên góc biểu diễn chuyển động đều, đường thẳng nằm ngang (song song trục t) biểu diễn vật đứng yên.
+- Ý nghĩa an toàn giao thông: Giữ khoảng cách an toàn, tuân thủ tốc độ giới hạn (tuỳ loại đường và thời tiết), tuân theo quy tắc "3 giây".
+
+### 5. Âm thanh
+- **Sóng âm**: Dao động lan truyền trong môi trường (rắn, lỏng, khí). KHÔNG truyền được trong chân không.
+- **Đặc trưng của âm**:
+  - **Tần số (Hz)**: Số dao động trong 1 giây. Tần số quyết định **độ cao** (tần số lớn $\rightarrow$ âm bổng/cao, tần số nhỏ $\rightarrow$ âm trầm/thấp). Tai người nghe được từ 20 Hz đến 20,000 Hz.
+  - **Biên độ**: Độ lệch lớn nhất khỏi vị trí cân bằng. Biên độ quyết định **độ to** của âm.
+- **Phản xạ âm**: Âm dội lại khi gặp mặt chắn. Mặt nhẵn, cứng phản xạ âm tốt; mặt sần sùi, xốp phản xạ âm kém. Tiếng vang xảy ra khi âm phản xạ đến tai chậm hơn âm trực tiếp tối thiểu $\frac{1}{15}$ giây.
+- **Tiếng ồn**: Âm thanh to, kéo dài ảnh hưởng sức khoẻ. Cách chống: hạn chế nguồn ồn, trồng cây xanh phân tán, dùng vật liệu cách âm.
+
+### 6. Ánh sáng
+- **Bản chất**: Ánh sáng là một dạng năng lượng.
+- **Tia sáng, chùm sáng**: Tia sáng biểu diễn bằng đường thẳng có mũi tên. Chùm sáng gồm nhiều tia sáng (song song, hội tụ, phân kì).
+- **Vùng tối**: Vùng sau vật cản không nhận được ánh sáng. Nguồn sáng hẹp tạo ra vùng tối rõ rệt; nguồn sáng rộng tạo ra vùng tối và vùng nửa tối (ứng dụng giải thích nhật thực).
+- **Phản xạ ánh sáng**: 
+  - *Định luật*: Tia phản xạ nằm trong mặt phẳng tới. Góc phản xạ ($i'$) bằng góc tới ($i$).
+  - *Phản xạ gương*: Bề mặt nhẵn bóng, tia sáng truyền theo 1 hướng.
+  - *Phản xạ khuếch tán*: Bề mặt sần sùi, tia sáng hắt ra nhiều hướng.
+- **Gương phẳng**: Tạo ảnh ảo (không hứng được trên màn), độ lớn bằng vật, khoảng cách từ vật tới gương bằng khoảng cách từ ảnh tới gương (đối xứng).
+
+### 7. Từ trường
+- **Nam châm**: Hút được các vật có từ tính (sắt, thép, niken, coban). Luôn có 2 cực: Cực Bắc (N) và cực Nam (S). Cùng từ cực đẩy nhau, khác từ cực hút nhau.
+- **Từ trường**: Vùng không gian xung quanh nam châm hoặc dòng điện, tác dụng lực từ lên vật liệu từ.
+- **Từ phổ và Đường sức từ**: Hình ảnh mạt sắt sắp xếp quanh nam châm. Đường sức từ có chiều đi ra từ cực Bắc, đi vào cực Nam ("Ra Bắc, Vào Nam").
+- **Từ trường Trái Đất**: Trái Đất là nam châm khổng lồ. Cực Bắc địa từ nằm ở gần cực Nam địa lí, và ngược lại. Trục từ và trục địa lí không trùng nhau. (Ứng dụng: La bàn).
+- **Nam châm điện**: Gồm cuộn dây dẫn và lõi sắt non. Hoạt động nhờ dòng điện, từ trường thay đổi khi dòng điện thay đổi. (Ứng dụng: Cần cẩu, chuông điện).
+
+---
+
+## PHẦN IV. VẬT SỐNG (SINH HỌC)
+
+### 1. Tế bào - Đơn vị cơ bản của sự sống
+- **Định nghĩa**: Tế bào là đơn vị cấu trúc và chức năng cơ bản của mọi sinh vật sống. Thực hiện đầy đủ quá trình sống (sinh trưởng, hô hấp, sinh sản, bài tiết...).
+- **Kích thước**: Đa số siêu nhỏ (micromet), phải nhìn qua kính hiển vi.
+- **Cấu tạo chung**:
+  - **Màng tế bào**: Bao bọc, kiểm soát trao đổi chất.
+  - **Tế bào chất**: Nơi diễn ra các hoạt động sống.
+  - **Nhân hoặc Vùng nhân**: Chứa vật chất di truyền, trung tâm điều khiển.
+- **Phân loại tế bào**:
+  - **Tế bào nhân sơ**: Chưa có màng nhân, không có hệ thống nội màng, ít bào quan (Vi khuẩn).
+  - **Tế bào nhân thực**: Có màng nhân, hệ thống nội màng và nhiều bào quan có màng.
+  - **Tế bào thực vật vs Động vật**: Tế bào thực vật có thêm thành tế bào (bảo vệ, quy định hình dạng), lục lạp (quang hợp) và không bào trung tâm lớn.
+- **Sự lớn lên và Sinh sản**: Tế bào hấp thụ dinh dưỡng lớn lên, phân chia (từ 1 thành 2). Giúp cơ thể đa bào lớn lên và thay thế tế bào chết/tổn thương.
+
+### 2. Tổ chức cơ thể sinh vật
+- **Cơ thể đơn bào**: Cơ thể chỉ gồm 1 tế bào đảm nhiệm mọi chức năng (Vi khuẩn, trùng roi, trùng biến hình).
+- **Cơ thể đa bào**: Gồm nhiều tế bào chuyên hoá. 
+- **Các cấp tổ chức**: Tế bào $\rightarrow$ Mô (nhóm tế bào cùng hình dạng/chức năng) $\rightarrow$ Cơ quan (nhóm mô cùng thực hiện chức năng - VD: dạ dày, lá cây) $\rightarrow$ Hệ cơ quan (nhóm cơ quan - VD: Hệ tiêu hoá, Hệ rễ) $\rightarrow$ Cơ thể.
+
+### 3. Phân loại thế giới sống
+- **Vai trò**: Dễ dàng tìm kiếm và nghiên cứu các loài trong tự nhiên.
+- **Hệ thống phân loại (từ lớn đến nhỏ)**: Giới $\rightarrow$ Ngành $\rightarrow$ Lớp $\rightarrow$ Bộ $\rightarrow$ Họ $\rightarrow$ Chi (Giống) $\rightarrow$ Loài.
+- **Danh pháp khoa học**: Tên kép (Tên chi viết hoa + Tên loài viết thường). VD: *Apis cerana* (Ong mật).
+- **Hệ thống 5 giới**:
+  1. Giới Khởi sinh (Vi khuẩn): Nhân sơ, đơn bào.
+  2. Giới Nguyên sinh (Tảo, Động vật nguyên sinh): Nhân thực, đa số đơn bào.
+  3. Giới Nấm: Nhân thực, đơn/đa bào, dị dưỡng.
+  4. Giới Thực vật: Nhân thực, đa bào, tự dưỡng quang hợp.
+  5. Giới Động vật: Nhân thực, đa bào, dị dưỡng.
+- **Khoá lưỡng phân**: Dùng để phân loại dựa trên việc chia liên tục các tập hợp đối tượng thành 2 nhóm mang đặc điểm đối lập nhau.
+
+### 4. Vi khuẩn và Virus
+- **Vi khuẩn (Bacteria)**:
+  - Sinh vật đơn bào, nhân sơ. Hình dạng: que (trực khuẩn), xoắn, cầu.
+  - Cấu tạo: Vùng nhân, tế bào chất, màng tế bào, thành tế bào, roi, lông.
+  - Vai trò: Phân giải xác sinh vật, cố định đạm, dùng trong lên men (sữa chua, muối dưa).
+  - Tác hại: Gây bệnh (Tả, lao phổi, uốn ván), làm hỏng thực phẩm. Dùng kháng sinh để điều trị.
+- **Virus**:
+  - Dạng sống siêu nhỏ (chưa có cấu tạo tế bào), kích thước nanomet. Kí sinh nội bào bắt buộc.
+  - Cấu tạo cơ bản: Lõi vật chất di truyền (DNA/RNA) và Vỏ protein. Một số có vỏ ngoài/gai.
+  - Hình dạng: Khối, xoắn, hỗn hợp.
+  - Tác hại: Gây bệnh nguy hiểm (Sốt xuất huyết, Cúm, HIV, COVID-19). Phòng bệnh bằng Vaccine.
+
+### 5. Trao đổi chất và Chuyển hoá năng lượng
+- **Trao đổi chất**: Quá trình sinh vật lấy các chất từ môi trường, biến đổi thành chất cần thiết cho cơ thể, tạo năng lượng và thải chất thải ra ngoài.
+- **Chuyển hoá năng lượng**: Sự biến đổi từ dạng năng lượng này sang dạng năng lượng khác (Quang năng $\rightarrow$ Hoá năng trong quang hợp; Hoá năng $\rightarrow$ Cơ năng/Nhiệt năng trong hô hấp).
+- **Vai trò**: Đảm bảo sự sống, sinh trưởng, phát triển, vận động, cảm ứng và sinh sản của cơ thể.
