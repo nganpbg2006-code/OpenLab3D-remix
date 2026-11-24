@@ -144,7 +144,7 @@ export const EquipmentPreviewPanel: React.FC<EquipmentPreviewPanelProps> = ({
 
   return (
     <>
-      {/* Nút thu gọn nhỏ gọn ở góc trái khi Bảng thông tin chi tiết đang đóng — bấm vào để trượt bảng thông tin ra */}
+      {/* Nút thu gọn nhỏ gọn ở góc trái khi Bảng thông tin chi tiết đang đóng — chỉ hiển thị trên Desktop (>= 768px) để giữ phòng 3D trên điện thoại rõ ràng, xem thông tin qua Danh mục thiết bị */}
       {!isOpen && asset && (
         <button
           type="button"
@@ -152,7 +152,7 @@ export const EquipmentPreviewPanel: React.FC<EquipmentPreviewPanelProps> = ({
           onClick={() =>
             equipmentImagePreviewController.preview(asset.assetId, 'pinned')
           }
-          className={`fixed sm:absolute ${drawerOffsetClass} z-30 h-8 px-2.5 rounded-r-[10px] rounded-l-[6px] border backdrop-blur-md flex items-center gap-1.5 cursor-pointer transition-all shadow-[0_6px_20px_rgba(0,0,0,0.35)] ${
+          className={`hidden md:flex fixed sm:absolute ${drawerOffsetClass} z-30 h-8 px-2.5 rounded-r-[10px] rounded-l-[6px] border backdrop-blur-md items-center gap-1.5 cursor-pointer transition-all shadow-[0_6px_20px_rgba(0,0,0,0.35)] ${
             isDarkMode
               ? 'bg-[#0A1628]/85 hover:bg-[#132847] border-[#38BDF8]/80 text-white'
               : 'bg-white/90 hover:bg-[#EBF3FF] border-[#1D63E8]/75 text-[#051630]'
@@ -168,7 +168,16 @@ export const EquipmentPreviewPanel: React.FC<EquipmentPreviewPanelProps> = ({
         </button>
       )}
 
-      {/* BẢNG TRƯỢT THÔNG MINH (SLIDE-OVER PANEL / DRAWER) Ở GÓC TRÁI MÀN HÌNH */}
+      {/* Nền mờ đóng nhanh khi mở Thông tin thiết bị từ Danh mục trên Điện thoại (< 768px) */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 z-[92] bg-slate-950/60 md:hidden"
+          onClick={() => equipmentImagePreviewController.hide('close')}
+          aria-hidden="true"
+        />
+      )}
+
+      {/* BẢNG TRƯỢT THÔNG MINH (SLIDE-OVER PANEL / DRAWER) — Desktop ở góc trái, Mobile căn giữa rõ nét */}
       <aside
         ref={panelRef}
         role="dialog"
@@ -180,14 +189,14 @@ export const EquipmentPreviewPanel: React.FC<EquipmentPreviewPanelProps> = ({
         onPointerEnter={() => equipmentImagePreviewController.onPanelPointerEnter()}
         onPointerLeave={() => equipmentImagePreviewController.onPanelPointerLeave()}
         onClick={(e) => e.stopPropagation()}
-        className={`fixed sm:absolute ${drawerOffsetClass} z-[95] w-[284px] max-w-[calc(100vw-20px)] max-h-[calc(100dvh-88px)] overflow-y-auto overscroll-contain rounded-[14px] border-[1.5px] backdrop-blur-xl p-3 select-none transition-all duration-300 ease-out ${
+        className={`fixed md:absolute left-2.5 right-2.5 top-[58px] md:right-auto ${drawerOffsetClass} z-[95] md:w-[284px] max-w-[420px] mx-auto md:mx-0 max-h-[calc(100dvh-76px)] md:max-h-[calc(100dvh-88px)] overflow-y-auto overscroll-contain rounded-[16px] md:rounded-[14px] border-[1.5px] md:backdrop-blur-xl p-3.5 md:p-3 safe-bottom select-none transition-all duration-300 ease-out ${
           isOpen
             ? 'translate-x-0 opacity-100 pointer-events-auto'
             : '-translate-x-[120%] opacity-0 pointer-events-none'
         } ${
           isDarkMode
-            ? 'bg-[#0A1628]/92 border-[#38BDF8]/90 text-white shadow-[0_18px_46px_rgba(0,0,0,0.72)]'
-            : 'bg-white/95 border-[#1D63E8]/70 text-[#051630] shadow-[0_18px_46px_rgba(9,30,58,0.36)]'
+            ? 'bg-[#0A1628]/96 md:bg-[#0A1628]/92 border-[#38BDF8]/90 text-white shadow-[0_18px_46px_rgba(0,0,0,0.72)]'
+            : 'bg-white border-[#1D63E8]/70 text-[#051630] shadow-[0_18px_46px_rgba(9,30,58,0.36)]'
         }`}
       >
         {/* 1. Header: Nhãn trạng thái, Tên thiết bị & Nút "Đóng (X)" rõ ràng để ẩn ngay khi không dùng đến */}

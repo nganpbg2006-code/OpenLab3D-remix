@@ -4335,26 +4335,32 @@ export default function App() {
               <div className="flex-1 flex flex-col gap-1.5 md:gap-2 min-w-0 min-h-0 overflow-hidden relative">
                 {/* THANH QUẢN LÝ DỰ ÁN Ở PHÍA TRÊN GIAO DIỆN BÀN THÍ NGHIỆM 3D — Mặc định ẩn, chỉ hiện khi bấm Hiện */}
                 {!isViewportFullscreen && !isLabInfoBarsVisible && (
-                  <div className="flex items-center justify-between px-2.5 py-1 rounded-[10px] bg-[#0B1528]/90 border border-slate-800/80 text-xs text-slate-300 shrink-0">
-                    <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2 px-2 md:px-2.5 py-1 rounded-[10px] bg-[#0B1528]/90 border border-slate-800/80 text-xs text-slate-300 shrink-0">
+                    <div className="flex items-center gap-2 min-w-0">
                       <button
                         type="button"
                         onClick={() => handleSelectStudentScreen('home')}
-                        className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold flex items-center gap-1 cursor-pointer"
+                        className="hidden md:flex px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 font-semibold items-center gap-1 cursor-pointer shrink-0"
                       >
                         <Home className="w-3 h-3 text-sky-400" />
                         <span>Trang chủ</span>
                       </button>
-                      <span className="text-[11px] text-slate-400 hidden sm:inline">
+                      <span className="text-[11px] text-slate-300 truncate md:hidden">
+                        2 ngón: Zoom · Kéo: Di chuyển · Đúp: Nâng/Xoay
+                      </span>
+                      <span className="text-[11px] text-slate-400 hidden md:inline">
                         Các thanh thông tin đang thu gọn để mở rộng tối đa phòng thí nghiệm 3D
                       </span>
                     </div>
                     <button
                       type="button"
                       onClick={() => setIsLabInfoBarsVisible(true)}
-                      className="px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-[11.5px] cursor-pointer transition-colors"
+                      className="px-2.5 py-1 rounded-md bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 font-bold text-[11px] md:text-[11.5px] cursor-pointer transition-colors whitespace-nowrap shrink-0"
                     >
-                      Hiện Thanh Thông Tin &amp; Tiện Ích
+                      <span className="md:hidden">Tiện ích</span>
+                      <span className="hidden md:inline">
+                        Hiện Thanh Thông Tin &amp; Tiện Ích
+                      </span>
                     </button>
                   </div>
                 )}

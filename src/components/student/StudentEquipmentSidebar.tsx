@@ -468,23 +468,24 @@ export const StudentEquipmentSidebar: React.FC<StudentEquipmentSidebarProps> = (
   return (
     <aside
       aria-label="Danh mục thiết bị thí nghiệm"
-      className={`fixed inset-0 z-40 w-full md:static md:z-20 md:w-[274px] lg:w-[292px] md:border md:rounded-[12px] p-3 safe-bottom flex flex-col h-full shrink-0 select-none transition-colors ${
+      className={`fixed inset-0 z-40 w-full md:static md:z-20 md:w-[274px] lg:w-[292px] md:border md:rounded-[12px] p-3 safe-top safe-bottom flex flex-col h-full shrink-0 select-none transition-colors ${
         isDarkMode
           ? 'bg-[#131E30] md:border-[#263854] text-slate-100 shadow-[0_4px_16px_rgba(0,0,0,0.3)]'
           : 'bg-[#F2F6FB] md:border-[#C4D5E8] text-[#123059] shadow-[0_2px_10px_rgba(18,52,107,0.06)]'
       }`}
     >
       {/* 1. Nút Ẩn (màu đỏ) + Hộp “Thư viện” (libraries3D) + “Nạp .HTML” trên cùng 1 hàng */}
-      <div className="flex items-center justify-between mb-1.5 gap-1.5 shrink-0">
+      <div className="flex items-center justify-between mb-2 md:mb-1.5 gap-1.5 shrink-0">
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="h-7 px-2.5 rounded-[6px] bg-[#DC2626] hover:bg-[#B91C1C] border border-[#F87171] text-white text-[12px] font-extrabold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-xs"
+          className="h-9 md:h-7 px-3 md:px-2.5 rounded-[8px] md:rounded-[6px] bg-[#DC2626] hover:bg-[#B91C1C] border border-[#F87171] text-white text-[13px] md:text-[12px] font-extrabold flex items-center gap-1 transition-colors cursor-pointer shrink-0 shadow-xs"
           title="Ẩn thanh công cụ danh mục thiết bị"
           aria-label="Ẩn danh mục thiết bị"
         >
-          <PanelLeftClose className="w-3.5 h-3.5 text-white shrink-0" />
-          <span>Ẩn</span>
+          <PanelLeftClose className="w-4 h-4 md:w-3.5 md:h-3.5 text-white shrink-0" />
+          <span className="md:hidden">Đóng</span>
+          <span className="hidden md:inline">Ẩn</span>
         </button>
 
         <div className="flex items-center gap-1.5 shrink-0">
@@ -1016,6 +1017,10 @@ export const StudentEquipmentSidebar: React.FC<StudentEquipmentSidebarProps> = (
                     onClick={() => {
                       labSoundEngine.play('ui-toggle', 0.65);
                       onSelectAsset(asset.assetId);
+                      // Trên điện thoại (< 768px): chạm vào thẻ chỉ chọn thiết bị để dễ bấm "Xem thông tin" hoặc "Đặt lên bàn"
+                      if (typeof window !== 'undefined' && window.innerWidth < 768) {
+                        return;
+                      }
                       const curState = equipmentImagePreviewController.getState();
                       if (isExploreOnlyMode) {
                         if (curState.visible) {
@@ -1291,6 +1296,14 @@ export const StudentEquipmentSidebar: React.FC<StudentEquipmentSidebarProps> = (
             data-preview-trigger="true"
             onClick={() => {
               labSoundEngine.play('ui-toggle', 0.7);
+              if (
+                typeof window !== 'undefined' &&
+                window.innerWidth < 768 &&
+                onInspectAssetDetail
+              ) {
+                onInspectAssetDetail(effectiveSelectedAsset, false);
+                return;
+              }
               const curState = equipmentImagePreviewController.getState();
               if (
                 curState.visible &&
@@ -1304,15 +1317,16 @@ export const StudentEquipmentSidebar: React.FC<StudentEquipmentSidebarProps> = (
                 );
               }
             }}
-            className={`min-h-[44px] md:min-h-0 py-2 px-3.5 rounded-[9px] font-bold text-[14.5px] md:text-[14px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border shrink-0 ${
+            className={`min-h-[44px] md:min-h-0 py-2 px-3.5 rounded-[9px] font-bold text-[14px] flex items-center justify-center gap-1.5 transition-colors cursor-pointer border shrink-0 ${
               isDarkMode
                 ? 'bg-[#1A273D] hover:bg-[#243552] border-[#2E476B] text-slate-100'
                 : 'bg-white hover:bg-[#E6EEF8] border-[#C4D5E8] text-[#123059]'
             }`}
-            title="Mở bảng trượt thông tin chi tiết thiết bị (ảnh thực tế, dung tích, kích thước, khối lượng chuẩn)"
+            title="Xem thông tin chi tiết thiết bị (ảnh thực tế, dung tích, kích thước, khối lượng chuẩn)"
           >
             <Info className="w-4 h-4 shrink-0 text-[#00BCEB]" />
-            <span>Chi tiết</span>
+            <span className="md:hidden">Xem thông tin</span>
+            <span className="hidden md:inline">Chi tiết</span>
           </button>
         )}
 

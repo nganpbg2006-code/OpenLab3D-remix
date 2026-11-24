@@ -556,7 +556,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
 
     return (
       <header
-        className={`h-[50px] md:h-[54px] px-2.5 sm:px-4 border-b flex items-center justify-between gap-2 shrink-0 z-30 shadow-xs select-none transition-colors min-w-0 ${
+        className={`min-h-[50px] md:h-[54px] px-2 sm:px-4 safe-top border-b flex items-center justify-between gap-1.5 sm:gap-2 shrink-0 z-30 shadow-xs select-none transition-colors min-w-0 ${
           isDarkMode
             ? 'bg-[#081224] border-[#1E3252]'
             : 'bg-[#092B5E] border-[#164384]'
@@ -570,14 +570,14 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               setShowWorkspaceMenuPopover(false);
               onSelectStudentScreen('home');
             }}
-            className="flex items-center gap-2 text-left whitespace-nowrap shrink-0 focus:outline-none cursor-pointer min-w-0 group"
+            className="flex items-center gap-1.5 sm:gap-2 text-left whitespace-nowrap shrink-0 focus:outline-none cursor-pointer min-w-0 group"
             title="OPEN LAB 3D — Quay về màn hình tổng quan"
           >
             <div className="w-8 h-8 md:w-8.5 md:h-8.5 rounded-[8px] bg-[#1E6BFF] group-hover:bg-[#1557D6] border border-[#00BCEB] text-white flex items-center justify-center shadow-xs shrink-0 transition-colors">
               <FlaskConical className="w-4 h-4 md:w-4.5 md:h-4.5" />
             </div>
             <div className="flex items-baseline gap-1 min-w-0">
-              <span className="text-[16px] sm:text-[18px] leading-none font-extrabold tracking-tight text-white truncate">
+              <span className="text-[14.5px] sm:text-[18px] leading-none font-extrabold tracking-tight text-white truncate">
                 OPEN LAB <span className="text-[#00BCEB]">3D</span>
               </span>
             </div>
@@ -590,7 +590,7 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
               setShowWorkspaceMenuPopover(false);
               onSelectStudentScreen('home');
             }}
-            className={`h-8.5 px-2.5 sm:px-3 rounded-[9px] text-[12.5px] sm:text-[13px] font-extrabold transition-all whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 border ${
+            className={`h-9 sm:h-8.5 px-2 sm:px-3 rounded-[9px] text-[12px] sm:text-[13px] font-extrabold transition-all whitespace-nowrap shrink-0 cursor-pointer flex items-center gap-1.5 border ${
               isHomeScreen
                 ? 'bg-gradient-to-r from-[#1E6BFF] to-[#0095FF] text-white border-[#00BCEB] shadow-[0_0_14px_rgba(0,188,235,0.4)]'
                 : 'bg-[#10366E] hover:bg-[#1E6BFF] text-white border-[#2E64B8] hover:border-[#00BCEB] shadow-2xs'
@@ -598,8 +598,10 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
             title="Quay về màn hình Trang chủ tổng quan của hệ thống OPEN LAB 3D"
             aria-label="Trang chủ"
           >
-            <Home className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#00BCEB] shrink-0" />
-            <span>Trang chủ</span>
+            <Home className="w-4 h-4 text-[#00BCEB] shrink-0" />
+            <span className={isDetailedWorkspace ? 'hidden sm:inline' : 'inline'}>
+              Trang chủ
+            </span>
           </button>
 
           {/* Cụm chuyển nhanh phân khu: Ẩn hoàn toàn khi đang ở Trang chủ (Home Screen) */}
@@ -856,9 +858,9 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
           </div>
         )}
 
-        {/* MOBILE ACTION BAR (< 768px): Ẩn hoàn toàn trên Trang chủ */}
+        {/* MOBILE ACTION BAR (< 768px): Kích thước chạm chuẩn iOS/Android, ẩn hoàn toàn trên Trang chủ */}
         {!isHomeScreen && isDetailedWorkspace && (
-          <div className="flex md:hidden items-center gap-1 shrink-0 relative">
+          <div className="flex md:hidden items-center gap-1.5 shrink-0 relative">
             <button
               type="button"
               onClick={() => {
@@ -868,21 +870,38 @@ export const TopNavBar: React.FC<TopNavBarProps> = ({
                   onOpenHtmlModuleImporter?.();
                 }
               }}
-              className="px-2.5 h-8 rounded-[7px] bg-[#DC2626] hover:bg-[#B91C1C] border border-[#F87171] text-white text-[12px] font-extrabold flex items-center gap-1 shadow-xs transition-colors cursor-pointer whitespace-nowrap"
-              title={isLibraryOpen ? 'Ẩn danh mục thiết bị' : 'Mở danh mục thiết bị'}
+              className={`px-3 h-9 rounded-[9px] border text-white text-[12.5px] font-extrabold flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer whitespace-nowrap ${
+                isLibraryOpen
+                  ? 'bg-[#DC2626] hover:bg-[#B91C1C] border-[#F87171]'
+                  : 'bg-[#1E6BFF] hover:bg-[#1557D6] border-[#38BDF8]'
+              }`}
+              title={
+                isLibraryOpen
+                  ? 'Đóng danh mục thiết bị'
+                  : 'Mở danh mục thiết bị để thêm dụng cụ và xem thông tin chi tiết'
+              }
             >
-              <Plus className="w-3.5 h-3.5 stroke-[2.8]" />
-              <span>{isLibraryOpen ? 'Ẩn' : 'Thêm thiết bị'}</span>
+              {isLibraryOpen ? (
+                <>
+                  <X className="w-4 h-4 stroke-[2.6]" />
+                  <span>Đóng DM</span>
+                </>
+              ) : (
+                <>
+                  <Box className="w-4 h-4 text-[#7DD3FC]" />
+                  <span>Danh mục</span>
+                </>
+              )}
             </button>
 
             <button
               type="button"
               onClick={() => setShowMobileMenuPopover((v) => !v)}
-              className="w-8 h-8 rounded-[7px] bg-[#DC2626] hover:bg-[#B91C1C] border border-[#F87171] text-white flex items-center justify-center transition-colors cursor-pointer shadow-xs"
-              title={showMobileMenuPopover ? 'Ẩn Menu công cụ' : 'Mở Menu công cụ'}
-              aria-label="Menu công cụ"
+              className="w-9 h-9 rounded-[9px] bg-[#10366E] hover:bg-[#1E6BFF] border border-[#38BDF8]/75 text-white flex items-center justify-center transition-colors cursor-pointer shadow-xs"
+              title={showMobileMenuPopover ? 'Ẩn Menu hệ thống' : 'Mở Menu hệ thống'}
+              aria-label="Menu hệ thống"
             >
-              <SlidersHorizontal className="w-4 h-4 text-white" />
+              <SlidersHorizontal className="w-4 h-4 text-[#7DD3FC]" />
             </button>
 
             {showMobileMenuPopover && (

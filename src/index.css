@@ -51,7 +51,14 @@
   background: #4E76A8;
 }
 
-/* Mobile-first 100dvh shell & safe-area utilities (OPENLAB3D_MOBILE_UX_IMPROVEMENT_SPEC) */
+/* Mobile-first 100dvh shell & safe-area utilities (iOS & Android compatible) */
+html,
+body {
+  overscroll-behavior: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
 .ol3d-app-shell {
   width: 100%;
   height: 100vh;
@@ -61,6 +68,18 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+.ol3d-webgl-stage,
+.ol3d-webgl-stage canvas {
+  touch-action: none !important;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 .safe-bottom {

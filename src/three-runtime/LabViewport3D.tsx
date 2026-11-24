@@ -5576,6 +5576,8 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
 
   // Mobile & Desktop UX states: Collapsible Floating Tools, Optional Coord HUD, Compass toggle, and 3-State Device Bottom Sheet
   const [isMobileToolsOpen, setIsMobileToolsOpen] = useState<boolean>(false);
+  const [showMobileGestureGuide, setShowMobileGestureGuide] = useState<boolean>(false);
+  const [, setMobileGizmoTick] = useState<number>(0);
   const [showMobileCoordHud, setShowMobileCoordHud] = useState<boolean>(false);
   const [isCompassHudExpanded, setIsCompassHudExpanded] = useState<boolean>(false);
   const [isTopRightToolbarCollapsed, setIsTopRightToolbarCollapsed] =
@@ -5953,9 +5955,19 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
     scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
     pmremGenerator.dispose();
 
-    const camera = new THREE.PerspectiveCamera(42, width / height, 0.02, 40);
-    // Góc nhìn chuẩn openlan3dmixxx.vercel.app (nhìn bao quát mặt bàn gỗ, tủ kính 2 tầng, kệ gỗ 2 bên & bảng đen)
-    camera.position.set(0.0, BENCH_SURFACE_Y + 0.72, 1.08);
+    const isInitialPortraitMobile = width < 768 && width < height;
+    const camera = new THREE.PerspectiveCamera(
+      isInitialPortraitMobile ? 50 : 42,
+      width / height,
+      0.02,
+      40,
+    );
+    // Góc nhìn chuẩn bao quát mặt bàn gỗ, tủ kính 2 tầng, kệ gỗ 2 bên & bảng đen (tự điều chỉnh khoảng cách rõ nét cho màn hình dọc điện thoại)
+    if (isInitialPortraitMobile) {
+      camera.position.set(0.0, BENCH_SURFACE_Y + 0.88, 1.62);
+    } else {
+      camera.position.set(0.0, BENCH_SURFACE_Y + 0.72, 1.08);
+    }
     cameraRef.current = camera;
 
     // Studio Lighting Rig chuẩn openlan3dmixxx.vercel.app
@@ -6147,7 +6159,7 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
     verticalAxisGroup.add(vCone);
 
     const vHit = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.032, 0.032, 0.31, 12),
+      new THREE.CylinderGeometry(0.044, 0.044, 0.33, 12),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.01, depthWrite: false, depthTest: false }),
     );
     vHit.position.y = 0.16;
@@ -6180,7 +6192,7 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
     }
 
     const rHit = new THREE.Mesh(
-      new THREE.TorusGeometry(0.118, 0.026, 12, 36),
+      new THREE.TorusGeometry(0.118, 0.036, 12, 36),
       new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.01, depthWrite: false, depthTest: false }),
     );
     rHit.rotation.x = Math.PI / 2;
@@ -8458,8 +8470,68 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
       };
     }
 
-    // Track active touch/mouse pointers for 6px tap-vs-drag disambiguation and 2-finger pinch-zoom safety
+    // Track active touch/mouse pointers for tap-vs-drag disambiguation, native 2-finger pinch zoom (iOS/Android), and touch double-tap Lift/Rotate
     const activePointerIds = new Set<number>();
+    const activeTouchPoints = new Map<number, { x: number; y: number }>();
+    let pinchState: {
+      prevDist: number;
+      prevMidX: number;
+      prevMidY: number;
+    } | null = null;
+    let suppressTouchUntilAllUp = false;
+    let lastTouchTap: {
+      time: number;
+      clientX: number;
+      clientY: number;
+      instanceId: string | null;
+    } | null = null;
+    let lastTouchDoubleTapTime = 0;
+    let lastPointerWasTouch = false;
+    const _pinchOffset = new THREE.Vector3();
+    const _pinchPanRight = new THREE.Vector3();
+    const _pinchPanUp = new THREE.Vector3();
+    const _pinchCamDir = new THREE.Vector3();
+
+    const toggleMobileDualAxisGizmo = (targetInstId: string) => {
+      const targetInst = instancesRef.current.find(
+        (i) => i.instanceId === targetInstId,
+      );
+      if (!targetInst) return;
+      selectedInstanceIdRef.current = targetInstId;
+      onSelectInstanceRef.current(targetInstId);
+      setViewportContextMenu(null);
+      setDeviceSheetMode('collapsed');
+      labSoundEngine.play('ui-toggle', 0.85);
+
+      if (dualAxisGizmoIdRef.current === targetInstId) {
+        triggerFreeFallIfElevated(targetInstId);
+        setDualAxisGizmoInstanceId(null);
+      } else {
+        if (dualAxisGizmoIdRef.current) {
+          triggerFreeFallIfElevated(dualAxisGizmoIdRef.current);
+        }
+        const gObj = instanceObjectsRef.current.get(targetInstId);
+        const curLocalY = Math.max(
+          0,
+          gObj
+            ? gObj.position.y - BENCH_SURFACE_Y
+            : targetInst.transform.positionM[1],
+        );
+        const restingY =
+          Math.abs(targetInst.transform.positionM[0]) > 1.15 && curLocalY >= 0.2
+            ? 0.26
+            : 0;
+        gravityPhysicsRef.current.set(targetInstId, {
+          vy: 0,
+          falling: false,
+          restingY,
+        });
+        setDualAxisGizmoInstanceId(targetInstId);
+        setMobileGizmoTick((t) => t + 1);
+      }
+      requestRender();
+    };
+
     let pendingGrab: {
       instanceId: string;
       pointerId: number;
@@ -8535,13 +8607,37 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
     const handlePointerDown = (e: PointerEvent) => {
       if (viewModeRef.current === 'single-asset') return;
       if (e.target !== renderer.domElement) return;
+      lastPointerWasTouch = e.pointerType === 'touch';
       activePointerIds.add(e.pointerId);
 
-      // Nếu có từ 2 ngón tay chạm trở lên (pinch-zoom / 2-finger pan), hủy kéo vật thể và nhường hoàn toàn cho OrbitControls
-      if (activePointerIds.size > 1) {
-        orbit.enableZoom = true;
+      if (e.pointerType === 'touch') {
+        activeTouchPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+
+      // Nếu có từ 2 ngón tay chạm trở lên (pinch-zoom / 2-finger pan trên iOS & Android):
+      // hủy kéo vật thể và thực hiện phóng to / thu nhỏ 2 ngón mượt mà trực tiếp
+      if (activeTouchPoints.size >= 2 || activePointerIds.size > 1) {
         emptyTapStart = null;
+        lastTouchTap = null;
+        suppressTouchUntilAllUp = true;
         cancelActiveOrPendingDrag();
+        cameraGoalPosRef.current = null;
+        cameraGoalTargetRef.current = null;
+        if (activeTouchPoints.size >= 2) {
+          const pts = Array.from(activeTouchPoints.values());
+          const p0 = pts[0];
+          const p1 = pts[1];
+          pinchState = {
+            prevDist: Math.hypot(p1.x - p0.x, p1.y - p0.y),
+            prevMidX: (p0.x + p1.x) * 0.5,
+            prevMidY: (p0.y + p1.y) * 0.5,
+          };
+          orbit.enabled = false;
+        }
+        return;
+      }
+
+      if (e.pointerType === 'touch' && suppressTouchUntilAllUp) {
         return;
       }
 
@@ -8816,7 +8912,12 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
           }
 
           // Chuẩn bị kéo vật thể (hoặc kéo từng quả nặng trên Bình thông nhau Pascal) khi con trỏ đặt chính xác lên vật không bị khóa
-          if (toolModeRef.current !== 'rotate' && hitInst && !hitInst.locked) {
+          // Trên cảm ứng (iOS/Android), 1 ngón chạm & kéo vật thể LUÔN di chuyển vật một cách tự nhiên
+          if (
+            (e.pointerType === 'touch' || toolModeRef.current !== 'rotate') &&
+            hitInst &&
+            !hitInst.locked
+          ) {
             const obj = instanceObjectsRef.current.get(hitInstId);
             if (obj && raycaster.ray.intersectPlane(_rayPlane, _dragIntersect)) {
               orbit.enabled = false;
@@ -8851,6 +8952,11 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
 
     const handleContextMenu = (e: MouseEvent) => {
       if (viewModeRef.current === 'single-asset') return;
+      // Trên điện thoại cảm ứng (iOS / Android): không bật menu chuột phải dài che phòng thí nghiệm
+      if (lastPointerWasTouch || window.innerWidth < 768) {
+        e.preventDefault();
+        return;
+      }
       const rect = renderer.domElement.getBoundingClientRect();
       mouseNdc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouseNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -8930,7 +9036,81 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
 
     const handlePointerMove = (e: PointerEvent) => {
       if (viewModeRef.current === 'single-asset') return;
-      if (activePointerIds.size > 1) return;
+
+      if (e.pointerType === 'touch' && activeTouchPoints.has(e.pointerId)) {
+        activeTouchPoints.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+
+      // Phóng to / thu nhỏ bằng 2 ngón tay (Pinch-to-Zoom mượt mà cho cả iOS Safari & Android Chrome)
+      if (activeTouchPoints.size >= 2) {
+        const pts = Array.from(activeTouchPoints.values());
+        const p0 = pts[0];
+        const p1 = pts[1];
+        const currDist = Math.hypot(p1.x - p0.x, p1.y - p0.y);
+        const currMidX = (p0.x + p1.x) * 0.5;
+        const currMidY = (p0.y + p1.y) * 0.5;
+
+        if (pinchState && pinchState.prevDist > 8 && currDist > 8) {
+          const zoomRatio = THREE.MathUtils.clamp(
+            pinchState.prevDist / currDist,
+            0.72,
+            1.38,
+          );
+          _pinchOffset.subVectors(camera.position, orbit.target);
+          const curLen = _pinchOffset.length();
+          const nextLen = THREE.MathUtils.clamp(
+            curLen * zoomRatio,
+            orbit.minDistance + 0.04,
+            orbit.maxDistance - 0.1,
+          );
+          if (curLen > 1e-4) {
+            _pinchOffset.multiplyScalar(nextLen / curLen);
+          }
+
+          // Dịch chuyển nhẹ góc nhìn khi 2 ngón tay trượt song song
+          const dxMid = currMidX - pinchState.prevMidX;
+          const dyMid = currMidY - pinchState.prevMidY;
+          if (Math.hypot(dxMid, dyMid) > 0.5) {
+            camera.getWorldDirection(_pinchCamDir);
+            _pinchPanRight.crossVectors(_pinchCamDir, camera.up).normalize();
+            _pinchPanUp.crossVectors(_pinchPanRight, _pinchCamDir).normalize();
+            const panScale = nextLen * 0.0012;
+            orbit.target.addScaledVector(_pinchPanRight, -dxMid * panScale);
+            orbit.target.addScaledVector(_pinchPanUp, dyMid * panScale);
+            orbit.target.x = THREE.MathUtils.clamp(orbit.target.x, -3.2, 3.2);
+            orbit.target.y = THREE.MathUtils.clamp(
+              orbit.target.y,
+              BENCH_SURFACE_Y - 0.15,
+              BENCH_SURFACE_Y + 1.5,
+            );
+            orbit.target.z = THREE.MathUtils.clamp(orbit.target.z, -2.0, 2.2);
+          }
+
+          camera.position.copy(orbit.target).add(_pinchOffset);
+          camera.position.x = THREE.MathUtils.clamp(camera.position.x, -6.5, 6.5);
+          camera.position.y = THREE.MathUtils.clamp(camera.position.y, 0.18, 3.9);
+          camera.position.z = THREE.MathUtils.clamp(camera.position.z, -3.4, 5.7);
+
+          const prevDamping = orbit.enableDamping;
+          orbit.enableDamping = false;
+          orbit.update();
+          orbit.enableDamping = prevDamping;
+
+          updateProjectedOverlays();
+          requestRender();
+        }
+
+        pinchState = {
+          prevDist: currDist,
+          prevMidX: currMidX,
+          prevMidY: currMidY,
+        };
+        return;
+      }
+
+      if (activePointerIds.size > 1 || (e.pointerType === 'touch' && suppressTouchUntilAllUp)) {
+        return;
+      }
 
       // Bảo vệ tuyệt đối: nếu chuột trái không còn được giữ nhấn, hủy ngay mọi trạng thái kéo đang chờ/đang chạy
       if (
@@ -8983,6 +9163,7 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
             const dxPx = e.clientX - activeGizmoDrag.startClientX;
             gObj.rotation.y = activeGizmoDrag.startRotY + dxPx * 0.014;
           }
+          setMobileGizmoTick((t) => (t + 1) % 10000);
           updateProjectedOverlays();
           requestRender();
         }
@@ -9606,6 +9787,29 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
 
     const handlePointerUp = (e: PointerEvent) => {
       activePointerIds.delete(e.pointerId);
+      if (e.pointerType === 'touch') {
+        activeTouchPoints.delete(e.pointerId);
+      }
+
+      if (pinchState && activeTouchPoints.size < 2) {
+        pinchState = null;
+        if (activeTouchPoints.size === 0) {
+          suppressTouchUntilAllUp = false;
+          orbit.enabled = true;
+        }
+        updateProjectedOverlays();
+        requestRender();
+        return;
+      }
+
+      if (e.pointerType === 'touch' && suppressTouchUntilAllUp) {
+        if (activeTouchPoints.size === 0) {
+          suppressTouchUntilAllUp = false;
+          orbit.enabled = true;
+        }
+        return;
+      }
+
       if (activePointerIds.size < 2) {
         orbit.enableZoom = false;
       }
@@ -9685,11 +9889,39 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
         return;
       }
 
-      // Nếu đây chỉ là một cú chạm (Tap < 6px) vào thiết bị 3D mà chưa kéo đi: xử lý đóng/ngắt Cầu dao K hoặc lắp/đảo cực Pin đại, sau đó khôi phục OrbitControls
+      // Nếu đây chỉ là một cú chạm (Tap < 6px) vào thiết bị 3D mà chưa kéo đi:
+      // - Trên cảm ứng (iOS / Android): phát hiện Nhấp đúp (Double-tap) vào thiết bị -> Bật/Tắt chế độ Nâng cao & Xoay thiết bị (KHÔNG mở bảng thông tin)
+      // - Chạm đơn: xử lý đóng/ngắt Cầu dao K, Đèn cồn, Pin đại, Pit-tông Pascal như bình thường
       if (pendingGrab && pendingGrab.pointerId === e.pointerId) {
         const tappedGrab = pendingGrab;
         pendingGrab = null;
         orbit.enabled = true;
+
+        if (e.pointerType === 'touch') {
+          const now = performance.now();
+          if (
+            lastTouchTap &&
+            lastTouchTap.instanceId === tappedGrab.instanceId &&
+            now - lastTouchTap.time <= 380 &&
+            Math.hypot(
+              e.clientX - lastTouchTap.clientX,
+              e.clientY - lastTouchTap.clientY,
+            ) <= 44
+          ) {
+            lastTouchTap = null;
+            lastTouchDoubleTapTime = now;
+            toggleMobileDualAxisGizmo(tappedGrab.instanceId);
+            updateProjectedOverlays();
+            requestRender();
+            return;
+          }
+          lastTouchTap = {
+            time: now,
+            clientX: e.clientX,
+            clientY: e.clientY,
+            instanceId: tappedGrab.instanceId,
+          };
+        }
 
         const tappedInst = instancesRef.current.find(
           (i) => i.instanceId === tappedGrab.instanceId,
@@ -9885,6 +10117,30 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
           setDeviceSheetMode('collapsed');
           if (window.innerWidth < 768) {
             setIsMobileToolsOpen(false);
+            setShowMobileGestureGuide(false);
+          }
+          if (e.pointerType === 'touch') {
+            const now = performance.now();
+            if (
+              lastTouchTap &&
+              lastTouchTap.instanceId === null &&
+              now - lastTouchTap.time <= 360 &&
+              Math.hypot(
+                e.clientX - lastTouchTap.clientX,
+                e.clientY - lastTouchTap.clientY,
+              ) <= 44
+            ) {
+              lastTouchTap = null;
+              lastTouchDoubleTapTime = now;
+              handleFocusCameraPreset('bench-close');
+            } else {
+              lastTouchTap = {
+                time: now,
+                clientX: e.clientX,
+                clientY: e.clientY,
+                instanceId: null,
+              };
+            }
           }
           updateProjectedOverlays();
           requestRender();
@@ -10476,6 +10732,16 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
 
     const handlePointerCancel = (e: PointerEvent) => {
       activePointerIds.delete(e.pointerId);
+      if (e.pointerType === 'touch') {
+        activeTouchPoints.delete(e.pointerId);
+      }
+      if (activeTouchPoints.size < 2) {
+        pinchState = null;
+      }
+      if (activeTouchPoints.size === 0) {
+        suppressTouchUntilAllUp = false;
+        orbit.enabled = true;
+      }
       if (activePointerIds.size < 2) {
         orbit.enableZoom = false;
       }
@@ -10638,11 +10904,18 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
     };
 
     // Nhấp đúp (Double Click):
-    // - Khi nhấp đúp vào thiết bị 3D -> Mới hiện thanh thông tin của thiết bị đó (còn nhấp bình thường thì không)
+    // - Trên MÁY TÍNH (Mouse, >= 768px): Nhấp đúp vào thiết bị 3D -> Mở thanh thông tin của thiết bị đó (giữ nguyên 100%)
+    // - Trên ĐIỆN THOẠI (Touch / < 768px): Nhấp đúp vào thiết bị 3D -> Bật/Tắt chế độ Nâng cao & Xoay thiết bị (KHÔNG mở thông tin; xem thông tin ở Danh mục thiết bị)
     // - Nhấp đúp vào Bảng Đen -> Mở trình viết bảng đen
     // - Nhấp đúp vào mặt bàn / không gian -> Đưa camera về Góc Nhìn Chuẩn
     const handleDoubleClick = (e: MouseEvent) => {
       if (viewModeRef.current === 'single-asset') return;
+      const isTouchOrMobile = lastPointerWasTouch || window.innerWidth < 768;
+      if (isTouchOrMobile && performance.now() - lastTouchDoubleTapTime < 500) {
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
       const rect = renderer.domElement.getBoundingClientRect();
       mouseNdc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouseNdc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
@@ -10668,6 +10941,10 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
           : undefined;
         if (hitInst && hitAsset) {
           e.stopPropagation();
+          if (isTouchOrMobile) {
+            toggleMobileDualAxisGizmo(hitInst.instanceId);
+            return;
+          }
           selectedInstanceIdRef.current = hitInst.instanceId;
           onSelectInstanceRef.current(hitInst.instanceId);
           labSoundEngine.play('ui-toggle', 0.85);
@@ -10686,10 +10963,30 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
       handleFocusCameraPreset('bench-close');
     };
 
+    // Ngăn iOS Safari tự phóng to trang web khi dùng 2 ngón tay zoom trên canvas 3D
+    const handlePreventBrowserPinch = (ev: Event) => {
+      ev.preventDefault();
+    };
+    const handleCanvasTouchMoveGuard = (ev: TouchEvent) => {
+      if (ev.touches.length >= 2) {
+        ev.preventDefault();
+      }
+    };
+
+    renderer.domElement.style.touchAction = 'none';
     renderer.domElement.addEventListener('pointerdown', handlePointerDown);
     renderer.domElement.addEventListener('contextmenu', handleContextMenu);
     renderer.domElement.addEventListener('dblclick', handleDoubleClick);
     renderer.domElement.addEventListener('wheel', handleCanvasWheel, {
+      passive: false,
+    });
+    renderer.domElement.addEventListener('gesturestart', handlePreventBrowserPinch, {
+      passive: false,
+    } as AddEventListenerOptions);
+    renderer.domElement.addEventListener('gesturechange', handlePreventBrowserPinch, {
+      passive: false,
+    } as AddEventListenerOptions);
+    renderer.domElement.addEventListener('touchmove', handleCanvasTouchMoveGuard, {
       passive: false,
     });
     window.addEventListener('pointermove', handlePointerMove);
@@ -10701,6 +10998,7 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
       for (const entry of entries) {
         const { width: w, height: h } = entry.contentRect;
         if (w > 0 && h > 0) {
+          camera.fov = w < 768 && w < h ? 50 : 42;
           camera.aspect = w / h;
           camera.updateProjectionMatrix();
           renderer.setSize(w, h);
@@ -10718,6 +11016,9 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
       renderer.domElement.removeEventListener('contextmenu', handleContextMenu);
       renderer.domElement.removeEventListener('dblclick', handleDoubleClick);
       renderer.domElement.removeEventListener('wheel', handleCanvasWheel);
+      renderer.domElement.removeEventListener('gesturestart', handlePreventBrowserPinch);
+      renderer.domElement.removeEventListener('gesturechange', handlePreventBrowserPinch);
+      renderer.domElement.removeEventListener('touchmove', handleCanvasTouchMoveGuard);
       window.removeEventListener('pointermove', handlePointerMove);
       window.removeEventListener('pointerup', handlePointerUp);
       window.removeEventListener('pointercancel', handlePointerCancel);
@@ -11102,8 +11403,15 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
   const handleFocusCameraPreset = useCallback(
     (preset: 'bench-close' | 'room-overview') => {
       labSoundEngine.play('camera-zoom', 0.85);
+      const viewportW = mountRef.current?.clientWidth ?? window.innerWidth;
+      const viewportH = mountRef.current?.clientHeight ?? window.innerHeight;
+      const isPortraitMobile = viewportW < 768 && viewportW < viewportH;
       if (preset === 'room-overview') {
-        cameraGoalPosRef.current = new THREE.Vector3(0.0, 2.15, 2.85);
+        cameraGoalPosRef.current = new THREE.Vector3(
+          0.0,
+          isPortraitMobile ? 2.35 : 2.15,
+          isPortraitMobile ? 3.35 : 2.85,
+        );
         cameraGoalTargetRef.current = new THREE.Vector3(0.0, 0.88, -0.1);
         onNotify(
           'Chế độ Xem Toàn Phòng Kín: Góc nhìn giới hạn bên trong phòng thí nghiệm 3D.',
@@ -11112,8 +11420,8 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
       } else {
         cameraGoalPosRef.current = new THREE.Vector3(
           0.0,
-          BENCH_SURFACE_Y + 0.72,
-          1.08,
+          BENCH_SURFACE_Y + (isPortraitMobile ? 0.88 : 0.72),
+          isPortraitMobile ? 1.62 : 1.08,
         );
         cameraGoalTargetRef.current = new THREE.Vector3(
           0.0,
@@ -11524,11 +11832,11 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
 
       {/* Main WebGL Canvas Stage */}
       <div
-        className="relative flex-1 w-full h-full overflow-hidden"
+        className="ol3d-webgl-stage relative flex-1 w-full h-full overflow-hidden touch-none"
       >
         <div
           ref={mountRef}
-          className="w-full h-full"
+          className="w-full h-full touch-none"
           aria-label="OpenLab 3D Interactive WebGL Viewport"
         />
 
@@ -11918,7 +12226,7 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
           </div>
         )}
 
-        {/* Banner trạng thái khi đang mở 2 Trục Điều Khiển 3D (Chuột phải) chuẩn openlan3dmixxx.vercel.app */}
+        {/* Banner trạng thái khi đang mở 2 Trục Điều Khiển 3D (Desktop >= 768px giữ nguyên; Mobile < 768px dùng thanh Nâng/Xoay chuyên biệt ở đáy) */}
         {dualAxisGizmoInstanceId &&
           viewMode === 'lab-scene' &&
           (() => {
@@ -11928,29 +12236,170 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
             const gAsset = gInst ? assetsMap.get(gInst.assetId) : undefined;
             const gTitle =
               gInst?.customLabel || gAsset?.name.vi || 'Thiết bị 3D';
+            const gObj = instanceObjectsRef.current.get(dualAxisGizmoInstanceId);
+            const currentHeightCm = Math.max(
+              0,
+              Math.round(
+                ((gObj
+                  ? gObj.position.y - BENCH_SURFACE_Y
+                  : gInst?.transform.positionM[1] ?? 0) *
+                  100),
+              ),
+            );
+            const rawAngleDeg = Math.round(
+              THREE.MathUtils.radToDeg(
+                gObj ? gObj.rotation.y : gInst?.transform.rotationRad[1] ?? 0,
+              ),
+            );
+            const currentAngleDeg = ((rawAngleDeg % 360) + 360) % 360;
+
+            const applyMobileLiftCm = (cmVal: number) => {
+              const obj = instanceObjectsRef.current.get(dualAxisGizmoInstanceId);
+              if (!obj) return;
+              const phys = gravityPhysicsRef.current.get(dualAxisGizmoInstanceId);
+              if (phys) {
+                phys.falling = false;
+                phys.vy = 0;
+              }
+              const clampedM = THREE.MathUtils.clamp(cmVal / 100, 0, 1.15);
+              obj.position.y = BENCH_SURFACE_Y + clampedM;
+              if (dualAxisGizmoRef.current) {
+                dualAxisGizmoRef.current.position.copy(obj.position);
+              }
+              setMobileGizmoTick((t) => (t + 1) % 10000);
+              updateProjectedOverlays();
+              requestRenderRef.current();
+            };
+
+            const applyMobileRotateDeg = (degVal: number) => {
+              const obj = instanceObjectsRef.current.get(dualAxisGizmoInstanceId);
+              if (!obj || !gInst) return;
+              const rad = Number(THREE.MathUtils.degToRad(degVal).toFixed(3));
+              obj.rotation.y = rad;
+              onUpdateTransformRef.current(
+                dualAxisGizmoInstanceId,
+                gInst.transform.positionM,
+                [
+                  gInst.transform.rotationRad[0],
+                  rad,
+                  gInst.transform.rotationRad[2],
+                ],
+              );
+              setMobileGizmoTick((t) => (t + 1) % 10000);
+              updateProjectedOverlays();
+              requestRenderRef.current();
+            };
+
             return (
-              <div className="absolute top-12 left-1/2 -translate-x-1/2 z-25 flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/60 text-xs text-slate-200 shadow-xl backdrop-blur-md max-w-[92vw]">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                <span className="truncate">
-                  Đang mở 2 trục trên:{' '}
-                  <strong className="text-amber-300">{gTitle}</strong> — Kéo trục
-                  đứng (<span className="text-emerald-400 font-semibold">Xanh</span>
-                  ) để nâng lên cao, kéo vành tròn (
-                  <span className="text-amber-400 font-semibold">Vàng</span>) để
-                  xoay. Click ra ngoài để vật tự rơi xuống!
-                </span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerFreeFallIfElevated(dualAxisGizmoInstanceId);
-                    setDualAxisGizmoInstanceId(null);
-                    setViewportContextMenu(null);
-                  }}
-                  className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] cursor-pointer shrink-0"
+              <>
+                {/* Desktop Banner (>= 768px) — giữ nguyên giao diện máy tính */}
+                <div className="hidden md:flex absolute top-12 left-1/2 -translate-x-1/2 z-25 items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-slate-900/95 border border-emerald-500/60 text-xs text-slate-200 shadow-xl backdrop-blur-md max-w-[92vw]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <span className="truncate">
+                    Đang mở 2 trục trên:{' '}
+                    <strong className="text-amber-300">{gTitle}</strong> — Kéo trục
+                    đứng (<span className="text-emerald-400 font-semibold">Xanh</span>
+                    ) để nâng lên cao, kéo vành tròn (
+                    <span className="text-amber-400 font-semibold">Vàng</span>) để
+                    xoay. Click ra ngoài để vật tự rơi xuống!
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerFreeFallIfElevated(dualAxisGizmoInstanceId);
+                      setDualAxisGizmoInstanceId(null);
+                      setViewportContextMenu(null);
+                    }}
+                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] cursor-pointer shrink-0"
+                  >
+                    Đóng &amp; Thả rơi
+                  </button>
+                </div>
+
+                {/* Mobile Bottom Lift & Rotate Dock (< 768px) — bật bằng Nhấp đúp thiết bị, tối ưu cảm ứng iOS/Android */}
+                <div
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  className="md:hidden absolute inset-x-2 bottom-2 safe-bottom z-[58] rounded-[16px] bg-[#0B192F]/95 border border-emerald-400/70 p-3 shadow-[0_14px_34px_rgba(0,0,0,0.65)] text-white space-y-2.5"
                 >
-                  Đóng &amp; Thả rơi
-                </button>
-              </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-bold text-emerald-300 leading-tight">
+                        Nâng cao &amp; Xoay thiết bị (Nhấp đúp)
+                      </div>
+                      <div className="text-[13.5px] font-extrabold text-white truncate">
+                        {gTitle}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          applyMobileRotateDeg((currentAngleDeg + 90) % 360)
+                        }
+                        className="h-9 px-2.5 rounded-[9px] bg-amber-500/25 border border-amber-400/70 text-amber-200 text-[12px] font-extrabold flex items-center gap-1 cursor-pointer active:scale-95"
+                        title="Xoay nhanh 90°"
+                      >
+                        <RotateCw className="w-3.5 h-3.5" />
+                        <span>+90°</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          triggerFreeFallIfElevated(dualAxisGizmoInstanceId);
+                          setDualAxisGizmoInstanceId(null);
+                          setViewportContextMenu(null);
+                        }}
+                        className="h-9 px-3 rounded-[9px] bg-emerald-600 hover:bg-emerald-500 border border-emerald-300/70 text-white text-[12px] font-extrabold cursor-pointer active:scale-95"
+                      >
+                        Thả xuống
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[11.5px] font-bold text-emerald-300 w-[72px] shrink-0">
+                        Nâng cao
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={115}
+                        step={1}
+                        value={currentHeightCm}
+                        onChange={(e) => applyMobileLiftCm(Number(e.target.value))}
+                        className="flex-1 h-2 accent-emerald-400 cursor-pointer"
+                        aria-label="Nâng cao thiết bị"
+                      />
+                      <span className="font-mono text-[12px] font-extrabold text-emerald-200 w-12 text-right tabular-nums shrink-0">
+                        {currentHeightCm} cm
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-[11.5px] font-bold text-amber-300 w-[72px] shrink-0">
+                        Xoay góc
+                      </span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={360}
+                        step={5}
+                        value={currentAngleDeg}
+                        onChange={(e) =>
+                          applyMobileRotateDeg(Number(e.target.value))
+                        }
+                        className="flex-1 h-2 accent-amber-400 cursor-pointer"
+                        aria-label="Xoay thiết bị"
+                      />
+                      <span className="font-mono text-[12px] font-extrabold text-amber-200 w-12 text-right tabular-nums shrink-0">
+                        {currentAngleDeg}°
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </>
             );
           })()}
 
@@ -12156,17 +12605,60 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
           </div>
         </div>
 
-        {/* MOBILE FLOATING TOOLS (< 768px): Ký hiệu trong suốt mờ (Translucent Glass), bật/tắt hướng dẫn trên từng dụng cụ */}
+        {/* MOBILE TOP-LEFT COMPACT BAR (< 768px): Mở nhanh Danh mục thiết bị (thêm dụng cụ & xem thông tin) + bật/tắt nhãn */}
+        <div className="absolute top-2 left-2 flex md:hidden items-center gap-1.5 z-[54]">
+          {onToggleLibrary && (
+            <button
+              type="button"
+              onClick={() => {
+                labSoundEngine.play('ui-toggle', 0.65);
+                onToggleLibrary();
+              }}
+              className={`h-10 px-3 rounded-[11px] border text-[12.5px] font-extrabold flex items-center gap-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition-colors cursor-pointer active:scale-95 ${
+                isLibraryOpen
+                  ? 'bg-[#DC2626] border-[#F87171] text-white'
+                  : 'bg-[#0B192F]/92 border-[#38BDF8]/80 text-white'
+              }`}
+              title="Mở Danh mục thiết bị để thêm dụng cụ và xem thông tin chi tiết"
+              aria-label="Danh mục thiết bị"
+            >
+              <FolderOpen className="w-4 h-4 text-[#38BDF8] shrink-0" />
+              <span className="whitespace-nowrap">
+                {isLibraryOpen ? 'Đóng' : `Danh mục (${equipmentCount})`}
+              </span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => {
+              labSoundEngine.play('ui-toggle', 0.65);
+              onToggleLabels();
+            }}
+            className={`h-10 w-10 rounded-[11px] border flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition-colors cursor-pointer active:scale-95 ${
+              showLabels
+                ? 'bg-emerald-600/95 border-emerald-300 text-white'
+                : 'bg-[#0B192F]/90 border-white/30 text-slate-200'
+            }`}
+            title={showLabels ? 'Tắt nhãn thông số trên đầu thiết bị' : 'Bật nhãn thông số trên đầu thiết bị'}
+            aria-pressed={showLabels}
+            aria-label="Bật hoặc tắt nhãn thông số"
+          >
+            <Tag className="w-4 h-4 shrink-0" />
+          </button>
+        </div>
+
+        {/* MOBILE FLOATING TOOLS (< 768px): Kích thước nút chạm chuẩn iOS/Android (40-44px), nền sắc nét không làm mờ WebGL */}
         <div
           ref={mobileToolsRef}
-          className="absolute top-1.5 right-1.5 flex md:hidden flex-col items-end gap-1.5 z-[55]"
+          className="absolute top-2 right-2 flex md:hidden flex-col items-end gap-1.5 z-[55]"
         >
           <div className="flex items-center gap-1.5">
             {isRecordingVideo && (
               <button
                 type="button"
                 onClick={handleStopVideoRecording}
-                className="h-9 px-2.5 rounded-[9px] bg-red-900/28 backdrop-blur-md border border-red-400/75 text-white font-mono text-[11.5px] font-extrabold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                className="h-10 px-3 rounded-[11px] bg-red-900/95 border border-red-400/80 text-white font-mono text-[12px] font-extrabold flex items-center gap-1.5 shadow-md cursor-pointer"
                 title="Dừng ghi hình"
               >
                 <span className="w-2 h-2 rounded-full bg-red-400 animate-ping" />
@@ -12175,53 +12667,54 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
               </button>
             )}
 
-            {/* Ký hiệu Góc nhìn chuẩn (Nền trong suốt mờ, ẩn chữ mặc định) */}
+            {/* Góc nhìn chuẩn */}
             <button
               type="button"
               onClick={() => handleFocusCameraPreset('bench-close')}
-              className="h-9 px-2.5 rounded-[9px] bg-[#081528]/18 hover:bg-[#081528]/35 backdrop-blur-md border border-white/35 text-white text-[12px] font-extrabold flex items-center gap-1 shadow-[0_4px_14px_rgba(0,0,0,0.28)] cursor-pointer transition-colors"
+              className="w-10 h-10 rounded-[11px] bg-[#0B192F]/90 active:bg-[#13294B] border border-white/30 text-white flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.38)] cursor-pointer transition-colors"
               title="Đặt lại góc nhìn chuẩn bàn thí nghiệm"
               aria-label="Góc nhìn chuẩn"
             >
-              <RotateCcw className="w-4 h-4 text-[#38BDF8] drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" />
-              {isDetailedGuideOn && (
-                <span className="drop-shadow-[0_1px_2px_rgba(0,0,0,0.95)]">
-                  Góc chuẩn
-                </span>
-              )}
+              <RotateCcw className="w-4.5 h-4.5 text-[#38BDF8]" />
             </button>
 
-            {/* Nút Bật/Tắt chú thích trên từng dụng cụ (?) */}
+            {/* Hướng dẫn thao tác điện thoại (?) */}
             <button
               type="button"
-              onClick={handleToggleDetailedGuides}
-              className={`w-9 h-9 rounded-[9px] backdrop-blur-md border flex items-center justify-center shadow-[0_4px_14px_rgba(0,0,0,0.28)] transition-colors cursor-pointer ${
-                isDetailedGuideOn
-                  ? 'bg-amber-500/28 border-amber-300 text-white'
-                  : 'bg-[#081528]/18 hover:bg-[#081528]/35 border-white/35 text-amber-300'
+              onClick={() => {
+                setShowMobileGestureGuide((v) => !v);
+                setIsMobileToolsOpen(false);
+              }}
+              className={`w-10 h-10 rounded-[11px] border flex items-center justify-center shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition-colors cursor-pointer ${
+                showMobileGestureGuide
+                  ? 'bg-amber-500 border-amber-200 text-slate-950'
+                  : 'bg-[#0B192F]/90 border-white/30 text-amber-300'
               }`}
-              title={
-                isDetailedGuideOn
-                  ? 'Đang BẬT hiển thị tên trên đầu từng dụng cụ (Chạm để ẩn)'
-                  : 'Bật hiển thị tên & chú thích trên đầu từng dụng cụ'
-              }
-              aria-pressed={isDetailedGuideOn}
-              aria-label="Bật hoặc tắt chú thích trên từng dụng cụ"
+              title="Xem hướng dẫn thao tác cảm ứng trên điện thoại"
+              aria-pressed={showMobileGestureGuide}
+              aria-label="Hướng dẫn thao tác cảm ứng"
             >
-              <HelpCircle className="w-4 h-4 text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]" />
+              <HelpCircle className="w-4.5 h-4.5" />
             </button>
 
-            {/* Nút Mở/Ẩn Công cụ 3D trên Mobile (Nền màu đỏ thu gọn) */}
+            {/* Nút Mở/Ẩn Công cụ 3D trên Mobile */}
             <button
               type="button"
-              onClick={() => setIsMobileToolsOpen((v) => !v)}
-              className="h-8 px-2 rounded-[7px] bg-[#DC2626] hover:bg-[#B91C1C] border border-[#F87171] text-white text-[11.5px] font-extrabold flex items-center gap-1 shadow-sm transition-colors cursor-pointer"
+              onClick={() => {
+                setIsMobileToolsOpen((v) => !v);
+                setShowMobileGestureGuide(false);
+              }}
+              className={`h-10 px-3 rounded-[11px] border text-white text-[12.5px] font-extrabold flex items-center gap-1.5 shadow-[0_6px_18px_rgba(0,0,0,0.38)] transition-colors cursor-pointer ${
+                isMobileToolsOpen
+                  ? 'bg-[#DC2626] border-[#F87171]'
+                  : 'bg-[#1E6BFF] border-[#60A5FA]'
+              }`}
               aria-expanded={isMobileToolsOpen}
               aria-label={isMobileToolsOpen ? 'Ẩn Công cụ 3D' : 'Mở Công cụ 3D'}
               title={isMobileToolsOpen ? 'Ẩn thanh công cụ 3D' : 'Mở thanh công cụ 3D'}
             >
-              <Sliders className="w-3.5 h-3.5 text-white" />
-              <span>{isMobileToolsOpen ? 'Ẩn' : 'Mở'}</span>
+              <Sliders className="w-4 h-4 text-white" />
+              <span>{isMobileToolsOpen ? 'Đóng' : 'Công cụ'}</span>
               {isMobileToolsOpen ? (
                 <ChevronUp className="w-3.5 h-3.5 text-white" />
               ) : (
@@ -12230,97 +12723,78 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
             </button>
           </div>
 
+          {showMobileGestureGuide && (
+            <div
+              onPointerDown={(e) => e.stopPropagation()}
+              className="w-[272px] max-w-[calc(100vw-16px)] rounded-[14px] bg-[#0B192F]/96 border border-[#38BDF8]/70 p-3 shadow-[0_12px_32px_rgba(0,0,0,0.58)] text-white space-y-2"
+            >
+              <div className="flex items-center justify-between border-b border-white/15 pb-1.5">
+                <span className="text-[12.5px] font-extrabold text-amber-300">
+                  Thao tác cảm ứng trên điện thoại
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowMobileGestureGuide(false)}
+                  className="w-7 h-7 rounded-lg bg-white/10 text-slate-200 flex items-center justify-center cursor-pointer"
+                  aria-label="Đóng hướng dẫn"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <ul className="space-y-1.5 text-[12px] text-slate-200 leading-snug">
+                <li>
+                  <strong className="text-[#38BDF8]">2 ngón tay:</strong> Phóng to / Thu nhỏ phòng thí nghiệm
+                </li>
+                <li>
+                  <strong className="text-[#38BDF8]">Chạm &amp; kéo thiết bị:</strong> Di chuyển đến vị trí mong muốn
+                </li>
+                <li>
+                  <strong className="text-emerald-300">Nhấp đúp thiết bị:</strong> Bật chế độ Nâng cao &amp; Xoay thiết bị
+                </li>
+                <li>
+                  <strong className="text-amber-300">Xem thông tin thiết bị:</strong> Mở <em>Danh mục</em> → chọn <em>Xem thông tin</em>
+                </li>
+              </ul>
+            </div>
+          )}
+
           {isMobileToolsOpen && (
-            <div className="w-[248px] rounded-[12px] bg-[#081528]/20 backdrop-blur-md border border-white/35 p-2.5 shadow-[0_8px_28px_rgba(0,0,0,0.4)] text-white space-y-2">
-              <div className="grid grid-cols-3 gap-1.5">
-                <button
-                  type="button"
-                  onClick={() =>
-                    onToolModeChange(
-                      toolMode === 'translate' ? 'select' : 'translate',
-                    )
-                  }
-                  className={`py-2 px-1.5 rounded-[8px] border text-[11px] font-extrabold flex flex-col items-center gap-1 cursor-pointer backdrop-blur-sm ${
-                    toolMode === 'translate'
-                      ? 'bg-[#1E6BFF]/45 border-[#38BDF8] text-white'
-                      : 'bg-slate-950/20 border-white/25 text-white'
-                  }`}
-                  title="Di chuyển thiết bị"
-                >
-                  <Move className="w-4 h-4 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>Di chuyển</span>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    onToolModeChange(
-                      toolMode === 'rotate' ? 'select' : 'rotate',
-                    )
-                  }
-                  className={`py-2 px-1.5 rounded-[8px] border text-[11px] font-extrabold flex flex-col items-center gap-1 cursor-pointer backdrop-blur-sm ${
-                    toolMode === 'rotate'
-                      ? 'bg-[#1E6BFF]/45 border-[#38BDF8] text-white'
-                      : 'bg-slate-950/20 border-white/25 text-white'
-                  }`}
-                  title="Xoay vật thể"
-                >
-                  <RotateCw className="w-4 h-4 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>Xoay</span>}
-                </button>
-
+            <div
+              onPointerDown={(e) => e.stopPropagation()}
+              className="w-[276px] max-w-[calc(100vw-16px)] rounded-[14px] bg-[#0B192F]/96 border border-[#38BDF8]/70 p-3 shadow-[0_14px_36px_rgba(0,0,0,0.62)] text-white space-y-2.5"
+            >
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={handleToggleTopView}
-                  className={`py-2 px-1.5 rounded-[8px] border text-[11px] font-extrabold flex flex-col items-center gap-1 cursor-pointer backdrop-blur-sm ${
+                  className={`min-h-[48px] py-2 px-1.5 rounded-[10px] border text-[11.5px] font-bold flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 ${
                     isTopViewActive
-                      ? 'bg-[#1E6BFF]/45 border-[#38BDF8] text-white'
-                      : 'bg-slate-950/20 border-white/25 text-white'
+                      ? 'bg-[#1E6BFF] border-[#7DD3FC] text-white'
+                      : 'bg-slate-900/90 border-white/20 text-slate-100'
                   }`}
-                  title="Nhìn từ trên xuống"
                 >
                   <Eye className="w-4 h-4 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>Nhìn trên</span>}
+                  <span>Nhìn trên</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleSmoothZoom(0.8)}
-                  className="py-2 px-1.5 rounded-[8px] bg-slate-950/20 border border-white/25 text-white text-[11px] font-extrabold flex flex-col items-center gap-1 cursor-pointer backdrop-blur-sm"
-                  title="Phóng to"
+                  className="min-h-[48px] py-2 px-1.5 rounded-[10px] bg-slate-900/90 border border-white/20 text-slate-100 text-[11.5px] font-bold flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95"
                 >
                   <ZoomIn className="w-4 h-4 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>Phóng to</span>}
+                  <span>Phóng to</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => handleSmoothZoom(1.25)}
-                  className="py-2 px-1.5 rounded-[8px] bg-slate-950/20 border border-white/25 text-white text-[11px] font-extrabold flex flex-col items-center gap-1 cursor-pointer backdrop-blur-sm"
-                  title="Thu nhỏ"
+                  className="min-h-[48px] py-2 px-1.5 rounded-[10px] bg-slate-900/90 border border-white/20 text-slate-100 text-[11.5px] font-bold flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95"
                 >
                   <ZoomOut className="w-4 h-4 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>Thu nhỏ</span>}
+                  <span>Thu nhỏ</span>
                 </button>
 
-                <button
-                  type="button"
-                  onClick={onToggleLabels}
-                  className={`py-2 px-1.5 rounded-[8px] border text-[11px] font-extrabold flex flex-col items-center gap-1 cursor-pointer backdrop-blur-sm ${
-                    showLabels
-                      ? 'bg-emerald-900/30 border-emerald-400/75 text-[#5EEAD4]'
-                      : 'bg-slate-950/20 border-white/25 text-slate-200'
-                  }`}
-                  title="Bật/tắt thông số nổi trên dụng cụ"
-                >
-                  <Tag className="w-4 h-4" />
-                  {isDetailedGuideOn && (
-                    <span>{showLabels ? 'Số đo: Bật' : 'Số đo: Tắt'}</span>
-                  )}
-                </button>
-              </div>
-
-              <div className="pt-1.5 border-t border-white/20 grid grid-cols-4 gap-1.5">
                 <button
                   type="button"
                   onClick={() => {
@@ -12331,15 +12805,14 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                       showWorldAxes: nextHud,
                     });
                   }}
-                  className={`py-2 px-1.5 rounded-[7px] border text-[11px] font-extrabold flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                  className={`min-h-[48px] py-2 px-1.5 rounded-[10px] border text-[11.5px] font-bold flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 ${
                     showMobileCoordHud
-                      ? 'bg-[#1E6BFF]/45 border-[#38BDF8] text-white'
-                      : 'bg-slate-950/20 border-white/25 text-white'
+                      ? 'bg-[#1E6BFF] border-[#7DD3FC] text-white'
+                      : 'bg-slate-900/90 border-white/20 text-slate-100'
                   }`}
-                  title="Lưới & Tọa độ XYZ"
                 >
-                  <Grid className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>XYZ</span>}
+                  <Grid className="w-4 h-4 text-[#38BDF8]" />
+                  <span>Lưới XYZ</span>
                 </button>
 
                 <button
@@ -12353,19 +12826,18 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                       'info',
                     );
                   }}
-                  className={`py-2 px-1.5 rounded-[7px] border text-[11px] font-extrabold flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                  className={`min-h-[48px] py-2 px-1.5 rounded-[10px] border text-[11.5px] font-bold flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95 ${
                     !isSoundMuted
-                      ? 'bg-emerald-900/30 border-emerald-400/75 text-[#4ADE80]'
-                      : 'bg-slate-950/20 border-white/25 text-slate-200'
+                      ? 'bg-emerald-900/80 border-emerald-400/80 text-emerald-200'
+                      : 'bg-slate-900/90 border-white/20 text-slate-200'
                   }`}
-                  title="Bật/tắt âm thanh"
                 >
                   {!isSoundMuted ? (
-                    <Volume2 className="w-3.5 h-3.5 text-[#22C55E]" />
+                    <Volume2 className="w-4 h-4 text-emerald-300" />
                   ) : (
-                    <VolumeX className="w-3.5 h-3.5" />
+                    <VolumeX className="w-4 h-4 text-slate-400" />
                   )}
-                  {isDetailedGuideOn && <span>Âm</span>}
+                  <span>{!isSoundMuted ? 'Âm: Bật' : 'Âm: Tắt'}</span>
                 </button>
 
                 <button
@@ -12375,29 +12847,41 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                     if (!isRecordingVideo) handleStartVideoRecording();
                     else handleStopVideoRecording();
                   }}
-                  className="py-2 px-1.5 rounded-[7px] bg-red-900/28 border border-red-400/75 text-white text-[11px] font-extrabold flex flex-col items-center justify-center gap-1 cursor-pointer"
-                  title="Ghi hình 3D"
+                  className="min-h-[48px] py-2 px-1.5 rounded-[10px] bg-rose-950/90 border border-rose-400/75 text-rose-100 text-[11.5px] font-bold flex flex-col items-center justify-center gap-1 cursor-pointer active:scale-95"
                 >
-                  <Video className="w-3.5 h-3.5 text-red-200" />
-                  {isDetailedGuideOn && <span>REC</span>}
+                  <Video className="w-4 h-4 text-rose-300" />
+                  <span>Ghi hình</span>
                 </button>
+              </div>
 
+              <div className="grid grid-cols-2 gap-2 pt-1.5 border-t border-white/15">
                 <button
                   type="button"
                   onClick={() => {
                     setIsMobileToolsOpen(false);
                     setShowEnvSpecModal(true);
                   }}
-                  className="py-2 px-1.5 rounded-[7px] bg-slate-950/20 border border-white/25 text-white text-[11px] font-extrabold flex flex-col items-center justify-center gap-1 cursor-pointer"
-                  title="Biến vật lý môi trường"
+                  className="min-h-[42px] px-2.5 rounded-[10px] bg-slate-900/90 border border-white/20 text-white text-[12px] font-bold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
                 >
-                  <Compass className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  {isDetailedGuideOn && <span>Môi trường</span>}
+                  <Compass className="w-4 h-4 text-[#38BDF8] shrink-0" />
+                  <span>Môi trường</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileToolsOpen(false);
+                    handleFocusCameraPreset('room-overview');
+                  }}
+                  className="min-h-[42px] px-2.5 rounded-[10px] bg-slate-900/90 border border-white/20 text-white text-[12px] font-bold flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+                >
+                  <Maximize2 className="w-4 h-4 text-amber-300 shrink-0" />
+                  <span>Toàn phòng</span>
                 </button>
               </div>
 
               {/* Thanh trượt độ sáng môi trường 3D trên Mobile */}
-              <div className="pt-1.5 border-t border-white/20 flex items-center gap-2 px-1">
+              <div className="pt-2 border-t border-white/15 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() =>
@@ -12405,13 +12889,13 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                       ambientBrightnessPct > 25 ? 12 : 100,
                     )
                   }
-                  className="p-1 rounded-[6px] bg-amber-500/20 border border-amber-300/60 text-amber-300 cursor-pointer shrink-0"
+                  className="w-9 h-9 rounded-[9px] bg-amber-500/20 border border-amber-300/60 text-amber-300 flex items-center justify-center cursor-pointer shrink-0"
                   title="Chuyển nhanh phòng tối (12%) / phòng sáng chuẩn (100%)"
                 >
                   {ambientBrightnessPct <= 35 ? (
-                    <Lightbulb className="w-3.5 h-3.5 text-amber-300" />
+                    <Lightbulb className="w-4 h-4 text-amber-300" />
                   ) : (
-                    <Sun className="w-3.5 h-3.5 text-amber-300" />
+                    <Sun className="w-4 h-4 text-amber-300" />
                   )}
                 </button>
                 <input
@@ -12423,10 +12907,10 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                   onChange={(e) =>
                     handleChangeAmbientBrightness(Number(e.target.value))
                   }
-                  className="flex-1 h-1.5 accent-amber-400 cursor-pointer"
+                  className="flex-1 h-2 accent-amber-400 cursor-pointer"
                   aria-label="Thanh trượt điều chỉnh độ sáng môi trường 3D"
                 />
-                <span className="font-mono text-[11px] font-extrabold text-amber-200 w-9 text-right tabular-nums">
+                <span className="font-mono text-[12px] font-extrabold text-amber-200 w-10 text-right tabular-nums">
                   {ambientBrightnessPct}%
                 </span>
               </div>
@@ -13699,9 +14183,53 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                 ? previewEntry.realPhotoMeta.src
                 : null;
 
-            // STATE A: COLLAPSED — Ẩn hoàn toàn thanh thông tin thiết bị khi chưa nhấp đúp vào thiết bị
+            // STATE A: COLLAPSED — Desktop ẩn hoàn toàn khi chưa nhấp đúp; Mobile hiện thanh gọn ở đáy để mở nút điều khiển thiết bị (vẫn giữ 3D rõ ràng)
             if (deviceSheetMode === 'collapsed') {
-              return null;
+              if (dualAxisGizmoInstanceId) {
+                return null;
+              }
+              return (
+                <div
+                  onPointerDown={(e) => e.stopPropagation()}
+                  onClick={(e) => e.stopPropagation()}
+                  className="md:hidden absolute inset-x-2 bottom-2 safe-bottom z-[45] flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[14px] bg-[#0B192F]/95 border border-sky-400/55 shadow-[0_10px_28px_rgba(0,0,0,0.55)] text-white"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-[15px] leading-none shrink-0">
+                      {eqSymbol}
+                    </span>
+                    <span className="text-[12.5px] font-extrabold text-white truncate">
+                      {activeInstance.customLabel || activeAsset.name.vi}
+                    </span>
+                    {liveReadout.readoutBadge && (
+                      <span className="px-1.5 py-0.5 rounded-[5px] bg-[#1E6BFF]/85 font-mono text-[11px] font-extrabold tabular-nums shrink-0">
+                        {liveReadout.readoutBadge}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        labSoundEngine.play('ui-toggle', 0.7);
+                        setDeviceSheetMode('compact');
+                      }}
+                      className="h-9 px-2.5 rounded-[9px] bg-[#1E6BFF] active:bg-[#1552C7] border border-sky-300/70 text-white text-[12px] font-extrabold flex items-center gap-1 cursor-pointer active:scale-95"
+                    >
+                      <Sliders className="w-3.5 h-3.5 shrink-0" />
+                      <span>Điều khiển</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => onSelectInstance(null)}
+                      className="w-9 h-9 rounded-[9px] bg-slate-800 border border-white/20 text-slate-200 flex items-center justify-center cursor-pointer active:scale-95"
+                      aria-label="Bỏ chọn thiết bị"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              );
             }
 
             // STATE C / D (COMPACT) & STATE E (DETAIL) — Nền kính mờ trong suốt cao (Glassmorphism) nhìn xuyên thấu bàn 3D + Chữ cực đậm rõ
@@ -13750,12 +14278,13 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                     {/* Khung hình ảnh/icon nhỏ sắc nét KHÔNG làm mờ */}
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        if (window.innerWidth < 768) return;
                         equipmentImagePreviewController.preview(
                           activeAsset.assetId,
                           'pinned',
-                        )
-                      }
+                        );
+                      }}
                       className="w-8 h-8 rounded-[7px] bg-white border border-sky-300 flex items-center justify-center shrink-0 shadow-xs overflow-hidden cursor-pointer"
                       title="Nhấn để mở cửa sổ xem ảnh thực tế 240×240 & thông số"
                     >
@@ -13826,7 +14355,7 @@ export const LabViewport3D: React.FC<LabViewport3DProps> = ({
                           equipmentImagePreviewController.hide('close');
                         }
                       }}
-                      className={`h-6.5 px-2.5 rounded-[6px] border text-[11px] font-extrabold flex items-center gap-1 cursor-pointer transition-colors ${
+                      className={`hidden md:flex h-6.5 px-2.5 rounded-[6px] border text-[11px] font-extrabold items-center gap-1 cursor-pointer transition-colors ${
                         deviceSheetMode === 'detail'
                           ? 'bg-[#DC2626] hover:bg-[#B91C1C] border-[#F87171] text-white'
                           : 'bg-slate-950/55 hover:bg-slate-900/80 border-white/30 text-amber-200'
